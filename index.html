@@ -11,40 +11,64 @@
         supabaseUrl: "",
         supabaseAnonKey: "",
         mediaBucket: "rua-brasil-media",
-        jsonBlobUrl: "https://mantledb.sh/v2/rua-do-brasil-d1cf0ceea0a14dc09dff465505766f41/data"
+        jsonBlobUrl: "https://mantledb.sh/v2/rua-do-brasil-d1cf0ceea0a14dc09dff465505766f41/data",
+        adminPassword: "brasil2026"
       };
     </script>
   </head>
   <body>
+    <section class="login-screen" id="loginScreen">
+      <div class="login-panel">
+        <p class="eyebrow">Rua do Brasil</p>
+        <h1>Entrar no mural da Copa</h1>
+        <p>Escolha como quer acessar o site da rua.</p>
+
+        <div class="access-actions">
+          <button id="visitorAccess" type="button">Entrar como visitante</button>
+          <button class="secondary-button" id="adminAccess" type="button">Login de administrador</button>
+        </div>
+
+        <form class="admin-login" id="adminLoginForm" hidden>
+          <label>
+            Senha do administrador
+            <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Digite a senha">
+          </label>
+          <button type="submit">Entrar para editar</button>
+          <p class="login-message" id="loginMessage"></p>
+        </form>
+      </div>
+    </section>
+
     <header class="hero">
       <nav class="topbar" aria-label="Navegacao principal">
         <strong>Rua do Brasil</strong>
         <div class="nav-links">
           <a href="#galeria">Galeria</a>
-          <a href="#cotas">Cotas</a>
+          <a href="#arrecadacao">Arrecadacao</a>
+          <button class="nav-button" id="logoutButton" type="button">Trocar acesso</button>
         </div>
       </nav>
 
       <section class="hero-content">
         <p class="eyebrow">Memorias da vizinhanca</p>
-        <h1>Fotos, videos e cotas da nossa rua na Copa</h1>
+        <h1>Fotos e videos da nossa rua na Copa</h1>
         <p>
-          Registre os vizinhos enfeitando a rua, organize por ano e acompanhe
-          quem ja contribuiu para deixar tudo pronto para torcer pelo Brasil.
+          Acompanhe as lembrancas dos vizinhos enfeitando a rua para torcer
+          pelo Brasil.
         </p>
-        <a class="hero-button" href="#galeria">Adicionar registro</a>
+        <a class="hero-button" href="#galeria">Ver galeria</a>
       </section>
     </header>
 
     <main>
-      <section class="section-shell" id="galeria">
+      <section class="section-shell gallery-section" id="galeria">
         <div class="section-heading">
           <p class="eyebrow">Arquivo da festa</p>
-          <h2>Galeria da rua</h2>
+          <h2>Fotos e videos da rua</h2>
           <p class="section-note" id="connectionStatus"></p>
         </div>
 
-        <form class="panel media-form" id="mediaForm">
+        <form class="panel media-form admin-only" id="mediaForm">
           <label>
             Foto ou video
             <input id="mediaFile" type="file" accept="image/*,video/*" required>
@@ -70,10 +94,18 @@
               <option value="todos">Todos os anos</option>
             </select>
           </label>
-          <button class="ghost" id="clearGallery" type="button">Limpar galeria</button>
+          <button class="ghost admin-only" id="clearGallery" type="button">Limpar galeria</button>
         </div>
 
         <div class="gallery-grid" id="galleryGrid" aria-live="polite"></div>
+      </section>
+
+      <section class="finance-hero" id="arrecadacao">
+        <div>
+          <p class="eyebrow">Transparencia da rua</p>
+          <h2>Valores arrecadados</h2>
+          <p>Acompanhe separadamente as contribuicoes para bandeirinhas, tintas e decoracao.</p>
+        </div>
       </section>
 
       <section class="section-shell quota-band" id="cotas">
@@ -82,7 +114,7 @@
           <h2>Tabela de cotas</h2>
         </div>
 
-        <form class="panel quota-form" id="quotaForm">
+        <form class="panel quota-form admin-only" id="quotaForm">
           <label>
             Nome do vizinho
             <input id="quotaName" type="text" maxlength="80" placeholder="Nome" required>

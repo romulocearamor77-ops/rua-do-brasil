@@ -26,6 +26,14 @@ body {
   background: var(--paper);
 }
 
+body.is-locked {
+  overflow: hidden;
+}
+
+[hidden] {
+  display: none !important;
+}
+
 button,
 input,
 select {
@@ -83,10 +91,12 @@ a {
 
 .nav-links {
   display: flex;
+  align-items: center;
   gap: 10px;
 }
 
 .nav-links a,
+.nav-button,
 .hero-button,
 button {
   border: 0;
@@ -98,6 +108,88 @@ button {
 .nav-links a {
   padding: 10px 14px;
   background: rgba(255, 255, 255, 0.15);
+}
+
+.nav-button,
+.secondary-button {
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: none;
+}
+
+.secondary-button {
+  color: var(--deep-green);
+  border: 1px solid rgba(15, 77, 48, 0.2);
+  background: white;
+}
+
+.login-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  color: white;
+  background:
+    linear-gradient(125deg, rgba(11, 63, 37, 0.94), rgba(18, 102, 166, 0.82)),
+    repeating-linear-gradient(135deg, transparent 0 34px, rgba(255, 210, 51, 0.2) 34px 64px);
+}
+
+.login-panel {
+  width: min(520px, 100%);
+  border-radius: 8px;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+}
+
+.login-panel h1 {
+  margin: 0;
+  font-size: clamp(2rem, 8vw, 3.8rem);
+  line-height: 1;
+}
+
+.login-panel p:not(.eyebrow) {
+  line-height: 1.5;
+}
+
+.access-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 24px 0 16px;
+}
+
+.login-panel .admin-login {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.admin-login label {
+  color: white;
+}
+
+.login-message {
+  min-height: 20px;
+  margin: 0;
+  color: #ffe08a;
+  font-weight: 700;
+}
+
+.admin-only {
+  display: none !important;
+}
+
+.is-admin .admin-only {
+  display: grid !important;
+}
+
+.is-admin button.admin-only {
+  display: inline-flex !important;
 }
 
 .hero-content {
@@ -161,6 +253,35 @@ main {
   padding-left: max(16px, calc((100% - 1120px) / 2));
   padding-right: max(16px, calc((100% - 1120px) / 2));
   background: #eef6f0;
+}
+
+.gallery-section {
+  min-height: 70vh;
+}
+
+.finance-hero {
+  color: white;
+  background:
+    linear-gradient(110deg, rgba(15, 77, 48, 0.95), rgba(23, 78, 166, 0.9)),
+    linear-gradient(45deg, rgba(255, 210, 51, 0.34), transparent);
+}
+
+.finance-hero > div {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 56px 0;
+}
+
+.finance-hero h2 {
+  margin: 0;
+  font-size: clamp(2rem, 6vw, 4rem);
+}
+
+.finance-hero p:not(.eyebrow) {
+  max-width: 640px;
+  margin: 12px 0 0;
+  line-height: 1.55;
+  font-size: 1.08rem;
 }
 
 .section-heading {
@@ -411,11 +532,17 @@ footer {
 
   .nav-links {
     width: 100%;
+    flex-wrap: wrap;
   }
 
-  .nav-links a {
+  .nav-links a,
+  .nav-button {
     flex: 1;
     text-align: center;
+  }
+
+  .access-actions {
+    grid-template-columns: 1fr;
   }
 
   .hero p:not(.eyebrow) {

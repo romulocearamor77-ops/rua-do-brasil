@@ -1,5 +1,6 @@
 const galleryKey = "ruaBrasilGaleria";
 const quotaKey = "ruaBrasilCotas";
+const accessKey = "ruaBrasilAccessMode";
 const config = window.RUA_BRASIL_CONFIG || {};
 const hasSupabase = Boolean(config.supabaseUrl && config.supabaseAnonKey && window.supabase);
 const hasJsonBlob = Boolean(config.jsonBlobUrl);
@@ -22,9 +23,36 @@ const quotaValue = document.querySelector("#quotaValue");
 const quotaPaid = document.querySelector("#quotaPaid");
 const quotaRows = document.querySelector("#quotaRows");
 const quotaSummary = document.querySelector("#quotaSummary");
+const loginScreen = document.querySelector("#loginScreen");
+const visitorAccess = document.querySelector("#visitorAccess");
+const adminAccess = document.querySelector("#adminAccess");
+const adminLoginForm = document.querySelector("#adminLoginForm");
+const adminPassword = document.querySelector("#adminPassword");
+const loginMessage = document.querySelector("#loginMessage");
+const logoutButton = document.querySelector("#logoutButton");
 
 let gallery = [];
 let quotas = [];
+let accessMode = localStorage.getItem(accessKey) || "";
+
+function isAdmin() {
+  return accessMode === "admin";
+}
+
+function applyAccessMode() {
+  document.body.classList.toggle("is-locked", !accessMode);
+  document.body.classList.toggle("is-admin", isAdmin());
+  loginScreen.hidden = Boolean(accessMode);
+  logoutButton.textContent = isAdmin() ? "Sair do admin" : "Trocar acesso";
+}
+
+function setAccessMode(mode) {
+  accessMode = mode;
+  localStorage.setItem(accessKey, mode);
+  applyAccessMode();
+  renderGallery();
+  renderQuotas();
+}
 
 function readStorage(key) {
   try {
@@ -177,13 +205,15 @@ function renderGallery() {
     content.innerHTML = `<strong>${item.year}</strong><p></p>`;
     content.querySelector("p").textContent = item.caption;
 
-    const remove = document.createElement("button");
-    remove.className = "small-danger";
-    remove.type = "button";
-    remove.textContent = "Remover";
-    remove.addEventListener("click", () => removeGalleryItem(item));
+    if (isAdmin()) {
+      const remove = document.createElement("button");
+      remove.className = "small-danger";
+      remove.type = "button";
+      remove.textContent = "Remover";
+      remove.addEventListener("click", () => removeGalleryItem(item));
+      content.append(remove);
+    }
 
-    content.append(remove);
     card.append(media, content);
     galleryGrid.append(card);
   });
@@ -223,19 +253,25 @@ function renderQuotas() {
     `;
     row.children[0].textContent = item.name;
 
-    const toggle = document.createElement("button");
-    toggle.type = "button";
-    toggle.className = "small-danger";
-    toggle.textContent = item.paid ? "Marcar pendente" : "Marcar pago";
-    toggle.addEventListener("click", () => toggleQuota(item));
+    const actions = row.querySelector(".row-actions");
+    if (isAdmin()) {
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "small-danger";
+      toggle.textContent = item.paid ? "Marcar pendente" : "Marcar pago";
+      toggle.addEventListener("click", () => toggleQuota(item));
 
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.className = "small-danger";
-    remove.textContent = "Remover";
-    remove.addEventListener("click", () => removeQuota(item));
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "small-danger";
+      remove.textContent = "Remover";
+      remove.addEventListener("click", () => removeQuota(item));
 
-    row.querySelector(".row-actions").append(toggle, remove);
+      actions.append(toggle, remove);
+    } else {
+      actions.textContent = "Somente administrador";
+    }
+
     quotaRows.append(row);
   });
 }
@@ -487,4 +523,36 @@ quotaForm.addEventListener("submit", async (event) => {
   await saveQuota();
 });
 
+visitorAccess.addEventListener("click", () => {
+  setAccessMode("visitor");
+});
+
+adminAccess.addEventListener("click", () => {
+  adminLoginForm.hidden = !adminLoginForm.hidden;
+  if (!adminLoginForm.hidden) {
+    adminPassword.focus();
+  }
+});
+
+adminLoginForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (adminPassword.value === config.adminPassword) {
+    adminPassword.value = "";
+    loginMessage.textContent = "";
+    setAccessMode("admin");
+    return;
+  }
+
+  loginMessage.textContent = "Senha incorreta.";
+});
+
+logoutButton.addEventListener("click", () => {
+  accessMode = "";
+  localStorage.removeItem(accessKey);
+  adminLoginForm.hidden = true;
+  loginMessage.textContent = "";
+  applyAccessMode();
+});
+
+applyAccessMode();
 loadData();
