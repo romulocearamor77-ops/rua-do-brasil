@@ -72,7 +72,7 @@ let officialResults = {};
 let accessMode = localStorage.getItem(accessKey) === "admin" ? "admin" : "";
 const scheduleKey = "ruaBrasilTabelaCompleta";
 const scheduleVersionKey = "ruaBrasilTabelaCompletaVersao";
-const scheduleVersion = "2026-05-27-v3";
+const scheduleVersion = "2026-05-27-v4";
 const fullScheduleSeed = [
   {
     "matchNumber": 1,
@@ -1607,12 +1607,18 @@ function localizeScheduleMatch(match) {
   };
 }
 
+function localizedScheduleData() {
+  return fullScheduleData.map(localizeScheduleMatch);
+}
+
 function loadScheduleMemory() {
   const savedVersion = localStorage.getItem(scheduleVersionKey);
   const savedSchedule = readStorage(scheduleKey);
 
   if (savedVersion === scheduleVersion && Array.isArray(savedSchedule) && savedSchedule.length) {
-    return savedSchedule;
+    const localizedSavedSchedule = savedSchedule.map(localizeScheduleMatch);
+    saveStorage(scheduleKey, localizedSavedSchedule);
+    return localizedSavedSchedule;
   }
 
   const localizedSchedule = fullScheduleSeed.map(localizeScheduleMatch);
@@ -1720,8 +1726,9 @@ function scheduleSearchValue() {
 function filteredScheduleMatches() {
   const stage = scheduleFilterValue();
   const search = scheduleSearchValue();
+  const matches = localizedScheduleData();
 
-  return fullScheduleData.filter((match) => {
+  return matches.filter((match) => {
     const stageMatches = stage === "all" || match.stage === stage;
     if (!stageMatches) {
       return false;
@@ -1747,7 +1754,7 @@ function filteredScheduleMatches() {
 }
 
 function populateScheduleStageFilter() {
-  const stages = [...new Set(fullScheduleData.map((match) => match.stage))];
+  const stages = [...new Set(localizedScheduleData().map((match) => match.stage))];
   fullScheduleStageFilter.innerHTML = [
     '<option value="all">Todas as fases</option>',
     ...stages.map((stage) => `<option value="${escapeHtml(stage)}">${escapeHtml(stage)}</option>`)
