@@ -360,14 +360,18 @@
         </div>
 
         <div class="schedule-modal-tools">
+          <button class="hero-button" id="loadFullScheduleFrame" type="button">Carregar tabela oficial aqui</button>
           <a class="hero-button" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums" target="_blank" rel="noopener">Abrir tabela oficial da FIFA</a>
         </div>
 
         <div class="schedule-embed-shell">
+          <div class="schedule-embed-placeholder" id="scheduleEmbedPlaceholder">
+            <p>A tabela completa e pesada. Para evitar travamentos, clique em <strong>Carregar tabela oficial aqui</strong> ou abra direto no site da FIFA.</p>
+          </div>
           <iframe
             id="fullScheduleFrame"
             title="Tabela completa oficial da Copa do Mundo 2026"
-            src="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums"
+            data-src="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums"
           ></iframe>
           <div class="schedule-embed-fallback">
             <p>Se a tabela nao carregar aqui, use o botao acima para abrir a pagina oficial completa da FIFA.</p>

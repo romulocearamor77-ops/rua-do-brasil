@@ -27,6 +27,9 @@ const fullScheduleNavLink = document.querySelector("#fullScheduleNavLink");
 const fullScheduleModal = document.querySelector("#fullScheduleModal");
 const closeFullSchedule = document.querySelector("#closeFullSchedule");
 const closeFullScheduleButton = document.querySelector("#closeFullScheduleButton");
+const loadFullScheduleFrame = document.querySelector("#loadFullScheduleFrame");
+const fullScheduleFrame = document.querySelector("#fullScheduleFrame");
+const scheduleEmbedPlaceholder = document.querySelector("#scheduleEmbedPlaceholder");
 const matchGrid = document.querySelector("#matchGrid");
 const poolStats = document.querySelector("#poolStats");
 const betForm = document.querySelector("#betForm");
@@ -135,6 +138,14 @@ function setAccessMode(mode) {
 function toggleFullScheduleModal(show) {
   fullScheduleModal.hidden = !show;
   document.body.classList.toggle("is-locked", show || !accessMode);
+}
+
+function loadScheduleFrame() {
+  if (!fullScheduleFrame.src) {
+    fullScheduleFrame.src = fullScheduleFrame.dataset.src;
+  }
+  fullScheduleFrame.style.display = "block";
+  scheduleEmbedPlaceholder.hidden = true;
 }
 
 function readStorage(key) {
@@ -1519,6 +1530,10 @@ closeFullSchedule.addEventListener("click", () => {
 
 closeFullScheduleButton.addEventListener("click", () => {
   toggleFullScheduleModal(false);
+});
+
+loadFullScheduleFrame.addEventListener("click", () => {
+  loadScheduleFrame();
 });
 
 applyAccessMode();

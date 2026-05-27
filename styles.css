@@ -585,11 +585,28 @@ main {
   background: white;
 }
 
+.schedule-embed-placeholder {
+  display: grid;
+  place-items: center;
+  min-height: 38vh;
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  background:
+    radial-gradient(circle at top, rgba(22, 129, 61, 0.08), transparent 34%),
+    #fbfdf8;
+}
+
+.schedule-embed-placeholder strong {
+  color: var(--deep-green);
+}
+
 .schedule-embed-shell iframe {
   width: 100%;
   min-height: 62vh;
   border: 0;
   background: white;
+  display: none;
 }
 
 .schedule-embed-fallback {
