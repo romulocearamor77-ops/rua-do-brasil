@@ -58,7 +58,7 @@ let quotas = [];
 let expenses = [];
 let bets = [];
 let officialResults = {};
-let accessMode = localStorage.getItem(accessKey) || "";
+let accessMode = localStorage.getItem(accessKey) || "visitor";
 
 const worldCupMatches = [
   {
@@ -103,6 +103,10 @@ const worldCupMatches = [
 ];
 
 officialResults = defaultResults();
+
+if (!localStorage.getItem(accessKey)) {
+  localStorage.setItem(accessKey, accessMode);
+}
 
 function isAdmin() {
   return accessMode === "admin";
