@@ -643,6 +643,9 @@ function renderGallery() {
     content.querySelector("p").textContent = item.caption;
 
     if (isAdmin()) {
+      const actions = document.createElement("div");
+      actions.className = "row-actions";
+
       const edit = document.createElement("button");
       edit.className = "small-danger";
       edit.type = "button";
@@ -654,7 +657,8 @@ function renderGallery() {
       remove.type = "button";
       remove.textContent = "Remover";
       remove.addEventListener("click", () => removeGalleryItem(item));
-      content.append(edit, remove);
+      actions.append(edit, remove);
+      content.append(actions);
     }
 
     card.append(media, content);
