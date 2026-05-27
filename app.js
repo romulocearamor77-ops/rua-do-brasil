@@ -57,7 +57,7 @@ let gallery = [];
 let quotas = [];
 let expenses = [];
 let bets = [];
-let officialResults = defaultResults();
+let officialResults = {};
 let accessMode = localStorage.getItem(accessKey) || "";
 
 const worldCupMatches = [
@@ -101,6 +101,8 @@ const worldCupMatches = [
     awayFlag: "BR"
   }
 ];
+
+officialResults = defaultResults();
 
 function isAdmin() {
   return accessMode === "admin";
