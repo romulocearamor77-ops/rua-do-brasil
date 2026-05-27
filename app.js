@@ -1,6 +1,8 @@
 const galleryKey = "ruaBrasilGaleria";
 const quotaKey = "ruaBrasilCotas";
 const expenseKey = "ruaBrasilDespesas";
+const betKey = "ruaBrasilBolao";
+const resultKey = "ruaBrasilResultados";
 const accessKey = "ruaBrasilAccessMode";
 const config = window.RUA_BRASIL_CONFIG || {};
 const hasSupabase = Boolean(config.supabaseUrl && config.supabaseAnonKey && window.supabase);
@@ -20,6 +22,14 @@ const yearFilter = document.querySelector("#yearFilter");
 const galleryGrid = document.querySelector("#galleryGrid");
 const clearGallery = document.querySelector("#clearGallery");
 const connectionStatus = document.querySelector("#connectionStatus");
+const matchGrid = document.querySelector("#matchGrid");
+const poolStats = document.querySelector("#poolStats");
+const betForm = document.querySelector("#betForm");
+const bettorName = document.querySelector("#bettorName");
+const betMatchList = document.querySelector("#betMatchList");
+const resultsForm = document.querySelector("#resultsForm");
+const resultsList = document.querySelector("#resultsList");
+const rankingList = document.querySelector("#rankingList");
 
 const quotaForm = document.querySelector("#quotaForm");
 const quotaName = document.querySelector("#quotaName");
@@ -46,7 +56,51 @@ const logoutButton = document.querySelector("#logoutButton");
 let gallery = [];
 let quotas = [];
 let expenses = [];
+let bets = [];
+let officialResults = defaultResults();
 let accessMode = localStorage.getItem(accessKey) || "";
+
+const worldCupMatches = [
+  {
+    id: "bra-mar",
+    round: "1a rodada",
+    date: "2026-06-13",
+    displayDate: "13 Jun 2026",
+    weekday: "Sabado",
+    time: "19:00",
+    venue: "New York New Jersey Stadium",
+    homeTeam: "Brasil",
+    awayTeam: "Marrocos",
+    homeFlag: "BR",
+    awayFlag: "MA"
+  },
+  {
+    id: "bra-hai",
+    round: "2a rodada",
+    date: "2026-06-19",
+    displayDate: "19 Jun 2026",
+    weekday: "Sexta",
+    time: "21:30",
+    venue: "Philadelphia Stadium",
+    homeTeam: "Brasil",
+    awayTeam: "Haiti",
+    homeFlag: "BR",
+    awayFlag: "HT"
+  },
+  {
+    id: "sco-bra",
+    round: "3a rodada",
+    date: "2026-06-24",
+    displayDate: "24 Jun 2026",
+    weekday: "Quarta",
+    time: "19:00",
+    venue: "Miami Stadium",
+    homeTeam: "Escocia",
+    awayTeam: "Brasil",
+    homeFlag: "SC",
+    awayFlag: "BR"
+  }
+];
 
 function isAdmin() {
   return accessMode === "admin";
@@ -63,6 +117,8 @@ function setAccessMode(mode) {
   accessMode = mode;
   localStorage.setItem(accessKey, mode);
   applyAccessMode();
+  renderMatches();
+  renderPool();
   renderGallery();
   renderQuotas();
   renderExpenses();
@@ -89,6 +145,49 @@ function money(value) {
 
 function createId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function defaultResults() {
+  return Object.fromEntries(worldCupMatches.map((match) => [match.id, { homeScore: "", awayScore: "" }]));
+}
+
+function normalizeName(value = "") {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function flagEmoji(code = "") {
+  const flags = {
+    BR: "BR",
+    MA: "MA",
+    HT: "HT",
+    SC: "SC"
+  };
+  return flags[code] || code;
+}
+
+function getResultValue(matchId, side) {
+  const result = officialResults[matchId];
+  if (!result) {
+    return "";
+  }
+  return result[side];
+}
+
+function hasOfficialResult(matchId) {
+  const home = getResultValue(matchId, "homeScore");
+  const away = getResultValue(matchId, "awayScore");
+  return home !== "" && away !== "";
+}
+
+function outcomeLabel(homeScore, awayScore) {
+  if (homeScore === awayScore) {
+    return "draw";
+  }
+  return homeScore > awayScore ? "home" : "away";
 }
 
 function mediaUrl(item) {
@@ -176,13 +275,19 @@ async function loadData() {
         gallery = data.gallery || [];
         quotas = data.quotas || [];
         expenses = data.expenses || [];
+        bets = data.bets || [];
+        officialResults = { ...defaultResults(), ...(data.officialResults || {}) };
         showMessage("Dados salvos em banco persistente compartilhado.");
       } catch {
         gallery = readStorage(galleryKey);
         quotas = readStorage(quotaKey);
         expenses = readStorage(expenseKey);
+        bets = readStorage(betKey);
+        officialResults = { ...defaultResults(), ...(readStorage(resultKey) || {}) };
         showMessage("Nao foi possivel carregar o banco. Usando modo local neste navegador.", true);
       }
+      renderMatches();
+      renderPool();
       renderGallery();
       renderQuotas();
       renderExpenses();
@@ -192,7 +297,11 @@ async function loadData() {
     gallery = readStorage(galleryKey);
     quotas = readStorage(quotaKey);
     expenses = readStorage(expenseKey);
+    bets = readStorage(betKey);
+    officialResults = { ...defaultResults(), ...(readStorage(resultKey) || {}) };
     showMessage("Modo local: configure o Supabase para salvar os dados na web.");
+    renderMatches();
+    renderPool();
     renderGallery();
     renderQuotas();
     renderExpenses();
@@ -218,7 +327,11 @@ async function loadData() {
   gallery = galleryData || [];
   quotas = quotaData || [];
   expenses = expenseData || [];
+  bets = readStorage(betKey);
+  officialResults = { ...defaultResults(), ...(readStorage(resultKey) || {}) };
   showMessage("Dados salvos em banco persistente.");
+  renderMatches();
+  renderPool();
   renderGallery();
   renderQuotas();
   renderExpenses();
@@ -235,7 +348,7 @@ async function saveJsonBlob() {
       "Content-Type": "application/json",
       "Accept": "application/json"
     },
-    body: JSON.stringify({ gallery, quotas, expenses })
+    body: JSON.stringify({ gallery, quotas, expenses, bets, officialResults })
   });
 
   if (!response.ok) {
@@ -324,6 +437,187 @@ function renderYearFilter() {
   });
 
   yearFilter.value = years.includes(Number(selected)) ? selected : "todos";
+}
+
+function renderMatches() {
+  matchGrid.innerHTML = "";
+
+  worldCupMatches.forEach((match) => {
+    const card = document.createElement("article");
+    card.className = "match-card";
+    card.innerHTML = `
+      <div class="match-card-top">
+        <span class="match-round">${match.round}</span>
+        <span class="match-date">${match.weekday}, ${match.displayDate}</span>
+      </div>
+      <div class="match-teams">
+        <div class="match-team">
+          <span class="team-badge">${flagEmoji(match.homeFlag)}</span>
+          <span class="team-name">${match.homeTeam}</span>
+        </div>
+        <div class="match-versus">vs</div>
+        <div class="match-team">
+          <span class="team-badge">${flagEmoji(match.awayFlag)}</span>
+          <span class="team-name">${match.awayTeam}</span>
+        </div>
+      </div>
+      <div class="match-meta">
+        <span>${match.time} - horario de Brasilia</span>
+        <span>${match.venue}</span>
+      </div>
+    `;
+    matchGrid.append(card);
+  });
+}
+
+function scorePrediction(prediction, matchId) {
+  const result = officialResults[matchId];
+  if (!prediction || !result || result.homeScore === "" || result.awayScore === "") {
+    return { points: 0, exact: 0 };
+  }
+
+  const predictedHome = Number(prediction.homeScore);
+  const predictedAway = Number(prediction.awayScore);
+  const officialHome = Number(result.homeScore);
+  const officialAway = Number(result.awayScore);
+
+  if (predictedHome === officialHome && predictedAway === officialAway) {
+    return { points: 3, exact: 1 };
+  }
+
+  if (outcomeLabel(predictedHome, predictedAway) === outcomeLabel(officialHome, officialAway)) {
+    return { points: 1, exact: 0 };
+  }
+
+  return { points: 0, exact: 0 };
+}
+
+function buildRanking() {
+  return bets
+    .map((bet) => {
+      const totals = worldCupMatches.reduce((accumulator, match) => {
+        const prediction = bet.predictions.find((item) => item.matchId === match.id);
+        const score = scorePrediction(prediction, match.id);
+        return {
+          points: accumulator.points + score.points,
+          exactHits: accumulator.exactHits + score.exact
+        };
+      }, { points: 0, exactHits: 0 });
+
+      return {
+        ...bet,
+        ...totals
+      };
+    })
+    .sort((left, right) => (
+      right.points - left.points ||
+      right.exactHits - left.exactHits ||
+      left.name.localeCompare(right.name, "pt-BR")
+    ));
+}
+
+function renderPoolStats() {
+  const ranking = buildRanking();
+  const exactTotal = ranking.reduce((total, item) => total + item.exactHits, 0);
+
+  poolStats.innerHTML = `
+    <div class="pool-mini-stat"><span>Palpites enviados</span><strong>${bets.length}</strong></div>
+    <div class="pool-mini-stat"><span>Lider atual</span><strong>${ranking[0]?.name || "Aguardando"}</strong></div>
+    <div class="pool-mini-stat"><span>Placares exatos</span><strong>${exactTotal}</strong></div>
+  `;
+}
+
+function renderBetForm() {
+  betMatchList.innerHTML = "";
+
+  worldCupMatches.forEach((match) => {
+    const card = document.createElement("div");
+    card.className = "bet-card";
+    card.innerHTML = `
+      <div class="bet-card-header">
+        <div>
+          <strong>${match.homeTeam} x ${match.awayTeam}</strong>
+          <p class="bet-date">${match.weekday}, ${match.displayDate} - ${match.time}</p>
+        </div>
+        <span class="match-round">${match.round}</span>
+      </div>
+      <div class="score-fields">
+        <label>
+          ${match.homeTeam}
+          <input type="number" min="0" required data-match-id="${match.id}" data-side="homeScore" placeholder="0">
+        </label>
+        <span>x</span>
+        <label>
+          ${match.awayTeam}
+          <input type="number" min="0" required data-match-id="${match.id}" data-side="awayScore" placeholder="0">
+        </label>
+      </div>
+    `;
+    betMatchList.append(card);
+  });
+}
+
+function renderResultsForm() {
+  resultsList.innerHTML = "";
+
+  worldCupMatches.forEach((match) => {
+    const result = officialResults[match.id] || { homeScore: "", awayScore: "" };
+    const card = document.createElement("div");
+    card.className = "result-card";
+    card.innerHTML = `
+      <strong>${match.homeTeam} x ${match.awayTeam}</strong>
+      <p>${match.weekday}, ${match.displayDate} - ${match.time} - ${match.venue}</p>
+      <div class="score-fields">
+        <label>
+          ${match.homeTeam}
+          <input type="number" min="0" data-result-match-id="${match.id}" data-side="homeScore" value="${result.homeScore}">
+        </label>
+        <span>x</span>
+        <label>
+          ${match.awayTeam}
+          <input type="number" min="0" data-result-match-id="${match.id}" data-side="awayScore" value="${result.awayScore}">
+        </label>
+      </div>
+    `;
+    resultsList.append(card);
+  });
+}
+
+function renderRanking() {
+  rankingList.innerHTML = "";
+  const ranking = buildRanking();
+
+  if (!ranking.length) {
+    rankingList.innerHTML = '<div class="ranking-empty">Ainda nao ha palpites cadastrados. O primeiro morador a palpitar ja estreia na lideranca.</div>';
+    return;
+  }
+
+  ranking.forEach((entry, index) => {
+    const card = document.createElement("article");
+    card.className = "ranking-card";
+    card.innerHTML = `
+      <div class="ranking-card-top">
+        <div class="ranking-position">${index + 1}</div>
+        <div>
+          <strong>${entry.name}</strong>
+          <p class="ranking-meta">${entry.predictions.length} jogos preenchidos</p>
+        </div>
+        <strong class="ranking-points">${entry.points} pts</strong>
+      </div>
+      <div class="ranking-breakdown">
+        <span>${entry.exactHits} placares exatos</span>
+        <span>${worldCupMatches.filter((match) => hasOfficialResult(match.id)).length} jogos com resultado oficial</span>
+      </div>
+    `;
+    rankingList.append(card);
+  });
+}
+
+function renderPool() {
+  renderPoolStats();
+  renderBetForm();
+  renderResultsForm();
+  renderRanking();
 }
 
 function renderGallery() {
@@ -498,6 +792,79 @@ function renderExpenses() {
 
     expenseRows.append(row);
   });
+}
+
+async function persistPoolData(successMessage, fallbackKey, fallbackValue, errorMessage) {
+  try {
+    if (hasJsonBlob) {
+      await saveJsonBlob();
+    } else {
+      saveStorage(fallbackKey, fallbackValue);
+    }
+    showMessage(successMessage);
+  } catch {
+    saveStorage(fallbackKey, fallbackValue);
+    showMessage(errorMessage, true);
+  }
+}
+
+async function saveBet() {
+  const name = bettorName.value.trim();
+  const normalizedName = normalizeName(name);
+  const predictions = worldCupMatches.map((match) => {
+    const homeInput = betForm.querySelector(`[data-match-id="${match.id}"][data-side="homeScore"]`);
+    const awayInput = betForm.querySelector(`[data-match-id="${match.id}"][data-side="awayScore"]`);
+    return {
+      matchId: match.id,
+      homeScore: Number(homeInput.value),
+      awayScore: Number(awayInput.value)
+    };
+  });
+
+  bets = [
+    {
+      id: createId(),
+      name,
+      normalizedName,
+      predictions,
+      createdAt: new Date().toISOString()
+    },
+    ...bets.filter((entry) => entry.normalizedName !== normalizedName)
+  ];
+
+  await persistPoolData(
+    "Palpite salvo com sucesso no bolao.",
+    betKey,
+    bets,
+    "Nao foi possivel salvar no banco compartilhado. O palpite ficou salvo apenas neste navegador."
+  );
+
+  betForm.reset();
+  renderPool();
+}
+
+async function saveOfficialResults() {
+  officialResults = worldCupMatches.reduce((accumulator, match) => {
+    const homeInput = resultsForm.querySelector(`[data-result-match-id="${match.id}"][data-side="homeScore"]`);
+    const awayInput = resultsForm.querySelector(`[data-result-match-id="${match.id}"][data-side="awayScore"]`);
+
+    return {
+      ...accumulator,
+      [match.id]: {
+        homeScore: homeInput.value === "" ? "" : Number(homeInput.value),
+        awayScore: awayInput.value === "" ? "" : Number(awayInput.value)
+      }
+    };
+  }, {});
+
+  await persistPoolData(
+    "Resultados oficiais atualizados.",
+    resultKey,
+    officialResults,
+    "Nao foi possivel salvar os resultados no banco compartilhado. Eles ficaram salvos apenas neste navegador."
+  );
+
+  renderPool();
 }
 
 async function saveGalleryLink(url) {
@@ -917,6 +1284,16 @@ quotaForm.addEventListener("submit", async (event) => {
   await saveQuota();
 });
 
+betForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  await saveBet();
+});
+
+resultsForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  await saveOfficialResults();
+});
+
 expenseForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   await saveExpense();
@@ -955,4 +1332,6 @@ logoutButton.addEventListener("click", () => {
 
 applyAccessMode();
 expenseDate.valueAsDate = new Date();
+renderMatches();
+renderPool();
 loadData();

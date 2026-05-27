@@ -46,7 +46,9 @@
       <nav class="topbar" aria-label="Navegacao principal">
         <strong>Rua do Brasil</strong>
         <div class="nav-links">
+          <a href="#jogos">Jogos</a>
           <a href="#galeria">Galeria</a>
+          <a href="#bolao">Bolao</a>
           <a href="#arrecadacao">Arrecadacao</a>
           <a href="#prestacao">Prestacao</a>
           <button class="nav-button" id="logoutButton" type="button">Trocar acesso</button>
@@ -60,11 +62,88 @@
           Acompanhe as lembrancas dos vizinhos enfeitando a rua para torcer
           pelo Brasil e acompanhe a prestacao de contas de cada gasto da decoracao.
         </p>
-        <a class="hero-button" href="#galeria">Ver galeria</a>
+        <div class="hero-actions">
+          <a class="hero-button" href="#jogos">Ver jogos do Brasil</a>
+          <a class="hero-button ghost-hero" href="#bolao">Entrar no bolao</a>
+        </div>
+      </section>
+
+      <section class="hero-panels section-shell" id="jogos">
+        <div class="hero-panel schedule-panel">
+          <div class="section-heading compact-heading">
+            <p class="eyebrow">Selecao na Copa 2026</p>
+            <h2>Tabela do Brasil na fase de grupos</h2>
+            <p class="section-note">
+              Datas e horarios oficiais em horario de Brasilia para organizar a decoracao, o churrasco e a torcida da rua.
+            </p>
+          </div>
+
+          <div class="match-grid" id="matchGrid"></div>
+        </div>
+
+        <div class="hero-panel pool-callout">
+          <p class="eyebrow">Bolao da rua</p>
+          <h2>Quem conhece mais a Selecao?</h2>
+          <p>
+            Cada morador pode registrar os palpites dos tres jogos do Brasil. O ranking destaca quem acertar mais placares.
+          </p>
+          <div class="pool-callout-stats" id="poolStats"></div>
+          <a class="hero-button" href="#bolao">Fazer meus palpites</a>
+        </div>
       </section>
     </header>
 
     <main>
+      <section class="section-shell pool-section" id="bolao">
+        <div class="section-heading">
+          <p class="eyebrow">Brincadeira da vizinhanca</p>
+          <h2>Bolao dos jogos do Brasil</h2>
+          <p class="section-note">
+            Cada palpite exato vale mais no ranking. Se acertar o vencedor ou empate sem cravar o placar, voce tambem soma ponto.
+          </p>
+        </div>
+
+        <div class="pool-layout">
+          <div class="panel pool-panel">
+            <h3>Enviar palpites</h3>
+            <form class="bet-form" id="betForm">
+              <label>
+                Seu nome
+                <input id="bettorName" type="text" maxlength="80" placeholder="Ex.: Romulo" required>
+              </label>
+
+              <div class="bet-match-list" id="betMatchList"></div>
+
+              <p class="form-note">
+                Pontuacao do ranking: 3 pontos por placar exato e 1 ponto por acertar o vencedor ou empate.
+              </p>
+
+              <button type="submit">Salvar meus palpites</button>
+            </form>
+          </div>
+
+          <div class="pool-side">
+            <div class="panel official-results admin-only">
+              <h3>Resultados oficiais</h3>
+              <form class="results-form" id="resultsForm">
+                <div class="results-list" id="resultsList"></div>
+                <button type="submit">Atualizar resultados</button>
+              </form>
+            </div>
+
+            <div class="panel ranking-panel">
+              <div class="ranking-header">
+                <div>
+                  <h3>Ranking do bolao</h3>
+                  <p class="section-note">Atualiza automaticamente quando os resultados oficiais forem preenchidos.</p>
+                </div>
+              </div>
+              <div class="ranking-list" id="rankingList"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="section-shell gallery-section" id="galeria">
         <div class="section-heading">
           <p class="eyebrow">Arquivo da festa</p>
