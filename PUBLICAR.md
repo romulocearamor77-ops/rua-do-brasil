@@ -1,6 +1,6 @@
 # Publicar o site com banco persistente
 
-Este projeto esta pronto para usar Supabase como banco de dados e armazenamento de fotos/videos.
+Este projeto esta pronto para usar Supabase como banco de dados e armazenamento de fotos/videos. Enquanto o Supabase nao estiver configurado, ele usa um banco JSON persistente compartilhado em `config.js`.
 
 ## 1. Criar o projeto no Supabase
 

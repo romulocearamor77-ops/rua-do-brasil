@@ -6,7 +6,14 @@
     <title>Rua do Brasil - Memorias da Copa</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="config.js"></script>
+    <script>
+      window.RUA_BRASIL_CONFIG = {
+        supabaseUrl: "",
+        supabaseAnonKey: "",
+        mediaBucket: "rua-brasil-media",
+        jsonBlobUrl: "https://mantledb.sh/v2/rua-do-brasil-d1cf0ceea0a14dc09dff465505766f41/data"
+      };
+    </script>
   </head>
   <body>
     <header class="hero">
@@ -119,6 +126,6 @@
       Feito para guardar a memoria da rua e organizar a torcida pelo Brasil.
     </footer>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=2"></script>
   </body>
 </html>

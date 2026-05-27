@@ -2,6 +2,7 @@ const galleryKey = "ruaBrasilGaleria";
 const quotaKey = "ruaBrasilCotas";
 const config = window.RUA_BRASIL_CONFIG || {};
 const hasSupabase = Boolean(config.supabaseUrl && config.supabaseAnonKey && window.supabase);
+const hasJsonBlob = Boolean(config.jsonBlobUrl);
 const db = hasSupabase
   ? window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey)
   : null;
@@ -63,6 +64,26 @@ function showMessage(message, isError = false) {
 
 async function loadData() {
   if (!hasSupabase) {
+    if (hasJsonBlob) {
+      try {
+        const response = await fetch(config.jsonBlobUrl, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Falha ao carregar JSONBlob");
+        }
+        const data = await response.json();
+        gallery = data.gallery || [];
+        quotas = data.quotas || [];
+        showMessage("Dados salvos em banco persistente compartilhado.");
+      } catch {
+        gallery = readStorage(galleryKey);
+        quotas = readStorage(quotaKey);
+        showMessage("Nao foi possivel carregar o banco. Usando modo local neste navegador.", true);
+      }
+      renderGallery();
+      renderQuotas();
+      return;
+    }
+
     gallery = readStorage(galleryKey);
     quotas = readStorage(quotaKey);
     showMessage("Modo local: configure o Supabase para salvar os dados na web.");
@@ -87,6 +108,25 @@ async function loadData() {
   showMessage("Dados salvos em banco persistente.");
   renderGallery();
   renderQuotas();
+}
+
+async function saveJsonBlob() {
+  if (!hasJsonBlob) {
+    return;
+  }
+
+  const response = await fetch(config.jsonBlobUrl, {
+    method: config.jsonBlobUrl.includes("mantledb.sh") ? "POST" : "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    body: JSON.stringify({ gallery, quotas })
+  });
+
+  if (!response.ok) {
+    throw new Error("Falha ao salvar JSONBlob");
+  }
 }
 
 function renderYearFilter() {
@@ -210,9 +250,19 @@ async function saveGalleryItem(file) {
 
   if (!hasSupabase) {
     const reader = new FileReader();
-    reader.addEventListener("load", () => {
+    reader.addEventListener("load", async () => {
       gallery.unshift({ ...item, dataUrl: reader.result });
-      saveStorage(galleryKey, gallery);
+      try {
+        if (hasJsonBlob) {
+          await saveJsonBlob();
+          showMessage("Registro salvo no banco persistente compartilhado.");
+        } else {
+          saveStorage(galleryKey, gallery);
+        }
+      } catch {
+        saveStorage(galleryKey, gallery);
+        showMessage("Nao foi possivel salvar no banco. Registro salvo apenas neste navegador.", true);
+      }
       mediaForm.reset();
       renderGallery();
     });
@@ -257,7 +307,16 @@ async function saveGalleryItem(file) {
 async function removeGalleryItem(item) {
   if (!hasSupabase) {
     gallery = gallery.filter((entry) => entry.id !== item.id);
-    saveStorage(galleryKey, gallery);
+    try {
+      if (hasJsonBlob) {
+        await saveJsonBlob();
+      } else {
+        saveStorage(galleryKey, gallery);
+      }
+    } catch {
+      saveStorage(galleryKey, gallery);
+      showMessage("Nao foi possivel atualizar o banco. Alteracao salva apenas neste navegador.", true);
+    }
     renderGallery();
     return;
   }
@@ -285,7 +344,17 @@ async function saveQuota() {
 
   if (!hasSupabase) {
     quotas.push(item);
-    saveStorage(quotaKey, quotas);
+    try {
+      if (hasJsonBlob) {
+        await saveJsonBlob();
+        showMessage("Cota salva no banco persistente compartilhado.");
+      } else {
+        saveStorage(quotaKey, quotas);
+      }
+    } catch {
+      saveStorage(quotaKey, quotas);
+      showMessage("Nao foi possivel salvar no banco. Cota salva apenas neste navegador.", true);
+    }
     quotaForm.reset();
     renderQuotas();
     return;
@@ -313,7 +382,16 @@ async function toggleQuota(item) {
     quotas = quotas.map((entry) => (
       entry.id === item.id ? { ...entry, paid: !entry.paid } : entry
     ));
-    saveStorage(quotaKey, quotas);
+    try {
+      if (hasJsonBlob) {
+        await saveJsonBlob();
+      } else {
+        saveStorage(quotaKey, quotas);
+      }
+    } catch {
+      saveStorage(quotaKey, quotas);
+      showMessage("Nao foi possivel atualizar o banco. Alteracao salva apenas neste navegador.", true);
+    }
     renderQuotas();
     return;
   }
@@ -333,7 +411,16 @@ async function toggleQuota(item) {
 async function removeQuota(item) {
   if (!hasSupabase) {
     quotas = quotas.filter((entry) => entry.id !== item.id);
-    saveStorage(quotaKey, quotas);
+    try {
+      if (hasJsonBlob) {
+        await saveJsonBlob();
+      } else {
+        saveStorage(quotaKey, quotas);
+      }
+    } catch {
+      saveStorage(quotaKey, quotas);
+      showMessage("Nao foi possivel atualizar o banco. Alteracao salva apenas neste navegador.", true);
+    }
     renderQuotas();
     return;
   }
@@ -368,7 +455,16 @@ clearGallery.addEventListener("click", async () => {
 
   if (!hasSupabase) {
     gallery = [];
-    saveStorage(galleryKey, gallery);
+    try {
+      if (hasJsonBlob) {
+        await saveJsonBlob();
+      } else {
+        saveStorage(galleryKey, gallery);
+      }
+    } catch {
+      saveStorage(galleryKey, gallery);
+      showMessage("Nao foi possivel limpar o banco. Galeria limpa apenas neste navegador.", true);
+    }
     renderGallery();
     return;
   }
