@@ -350,31 +350,65 @@
       <div class="schedule-modal-panel" role="dialog" aria-modal="true">
         <div class="schedule-modal-header">
           <div>
-            <p class="eyebrow">Calendario oficial</p>
+            <p class="eyebrow">Tabela da rua</p>
             <h2 id="fullScheduleTitle">Tabela completa da Copa do Mundo 2026</h2>
             <p class="section-note">
-              Visualize todos os jogos com datas, horarios e estadios. Fonte oficial: FIFA.
+              Todos os 104 jogos em horario de Brasilia, com fase, confronto e estadio.
             </p>
           </div>
           <button class="nav-button" id="closeFullScheduleButton" type="button">Fechar</button>
         </div>
 
         <div class="schedule-modal-tools">
-          <button class="hero-button" id="loadFullScheduleFrame" type="button">Carregar tabela oficial aqui</button>
-          <a class="hero-button" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums" target="_blank" rel="noopener">Abrir tabela oficial da FIFA</a>
+          <label class="schedule-filter">
+            Fase
+            <select id="fullScheduleStageFilter">
+              <option value="all">Todas as fases</option>
+            </select>
+          </label>
+          <label class="schedule-filter schedule-filter-wide">
+            Buscar time, cidade ou estadio
+            <input id="fullScheduleSearch" type="search" placeholder="Ex.: Brasil, final, MetLife, Miami" />
+          </label>
+        </div>
+
+        <div class="schedule-summary">
+          <article class="schedule-summary-card">
+            <span>Jogos exibidos</span>
+            <strong id="fullScheduleCount">0</strong>
+          </article>
+          <article class="schedule-summary-card">
+            <span>Estadios</span>
+            <strong id="fullScheduleVenueCount">0</strong>
+          </article>
+          <article class="schedule-summary-card">
+            <span>Periodo</span>
+            <strong>11/06 a 19/07</strong>
+          </article>
         </div>
 
         <div class="schedule-embed-shell">
-          <div class="schedule-embed-placeholder" id="scheduleEmbedPlaceholder">
-            <p>A tabela completa e pesada. Para evitar travamentos, clique em <strong>Carregar tabela oficial aqui</strong> ou abra direto no site da FIFA.</p>
+          <div class="table-wrap schedule-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Jogo</th>
+                  <th>Fase</th>
+                  <th>Data</th>
+                  <th>Hora</th>
+                  <th>Confronto</th>
+                  <th>Estadio</th>
+                </tr>
+              </thead>
+              <tbody id="fullScheduleRows">
+                <tr>
+                  <td colspan="6">Carregando tabela completa...</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <iframe
-            id="fullScheduleFrame"
-            title="Tabela completa oficial da Copa do Mundo 2026"
-            data-src="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums"
-          ></iframe>
           <div class="schedule-embed-fallback">
-            <p>Se a tabela nao carregar aqui, use o botao acima para abrir a pagina oficial completa da FIFA.</p>
+            <p>Horario sempre mostrado em Brasilia. Dados locais do site atualizados em 27/05/2026.</p>
           </div>
         </div>
       </div>
@@ -384,6 +418,7 @@
       Feito para guardar a memoria da rua, organizar a torcida e prestar contas com transparencia.
     </footer>
 
-    <script src="app.js?v=8"></script>
+    <script src="schedule-data.js?v=1"></script>
+    <script src="app.js?v=9"></script>
   </body>
 </html>

@@ -27,9 +27,11 @@ const fullScheduleNavLink = document.querySelector("#fullScheduleNavLink");
 const fullScheduleModal = document.querySelector("#fullScheduleModal");
 const closeFullSchedule = document.querySelector("#closeFullSchedule");
 const closeFullScheduleButton = document.querySelector("#closeFullScheduleButton");
-const loadFullScheduleFrame = document.querySelector("#loadFullScheduleFrame");
-const fullScheduleFrame = document.querySelector("#fullScheduleFrame");
-const scheduleEmbedPlaceholder = document.querySelector("#scheduleEmbedPlaceholder");
+const fullScheduleStageFilter = document.querySelector("#fullScheduleStageFilter");
+const fullScheduleSearch = document.querySelector("#fullScheduleSearch");
+const fullScheduleRows = document.querySelector("#fullScheduleRows");
+const fullScheduleCount = document.querySelector("#fullScheduleCount");
+const fullScheduleVenueCount = document.querySelector("#fullScheduleVenueCount");
 const matchGrid = document.querySelector("#matchGrid");
 const poolStats = document.querySelector("#poolStats");
 const betForm = document.querySelector("#betForm");
@@ -68,6 +70,9 @@ let expenses = [];
 let bets = [];
 let officialResults = {};
 let accessMode = localStorage.getItem(accessKey) === "admin" ? "admin" : "";
+const fullScheduleData = Array.isArray(window.WORLD_CUP_2026_SCHEDULE)
+  ? window.WORLD_CUP_2026_SCHEDULE
+  : [];
 
 const worldCupMatches = [
   {
@@ -138,14 +143,9 @@ function setAccessMode(mode) {
 function toggleFullScheduleModal(show) {
   fullScheduleModal.hidden = !show;
   document.body.classList.toggle("is-locked", show || !accessMode);
-}
-
-function loadScheduleFrame() {
-  if (!fullScheduleFrame.src) {
-    fullScheduleFrame.src = fullScheduleFrame.dataset.src;
+  if (show) {
+    renderFullSchedule();
   }
-  fullScheduleFrame.style.display = "block";
-  scheduleEmbedPlaceholder.hidden = true;
 }
 
 function readStorage(key) {
@@ -191,6 +191,96 @@ function flagEmoji(code = "") {
     SC: "🏴"
   };
   return flags[code] || code;
+}
+
+function escapeHtml(value = "") {
+  return String(value).replace(/[&<>"']/g, (char) => {
+    const entities = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "\"": "&quot;",
+      "'": "&#39;"
+    };
+    return entities[char] || char;
+  });
+}
+
+function scheduleFilterValue() {
+  return fullScheduleStageFilter.value || "all";
+}
+
+function scheduleSearchValue() {
+  return normalizeName(fullScheduleSearch.value || "");
+}
+
+function filteredScheduleMatches() {
+  const stage = scheduleFilterValue();
+  const search = scheduleSearchValue();
+
+  return fullScheduleData.filter((match) => {
+    const stageMatches = stage === "all" || match.stage === stage;
+    if (!stageMatches) {
+      return false;
+    }
+
+    if (!search) {
+      return true;
+    }
+
+    const haystack = normalizeName(
+      [
+        match.stage,
+        match.homeTeam,
+        match.awayTeam,
+        match.stadium,
+        match.city,
+        match.displayDate,
+        `jogo ${match.matchNumber}`
+      ].join(" ")
+    );
+    return haystack.includes(search);
+  });
+}
+
+function populateScheduleStageFilter() {
+  const stages = [...new Set(fullScheduleData.map((match) => match.stage))];
+  fullScheduleStageFilter.innerHTML = [
+    '<option value="all">Todas as fases</option>',
+    ...stages.map((stage) => `<option value="${escapeHtml(stage)}">${escapeHtml(stage)}</option>`)
+  ].join("");
+}
+
+function renderFullSchedule() {
+  const matches = filteredScheduleMatches();
+  const stadiums = new Set(matches.map((match) => `${match.stadium}|${match.city}`));
+
+  fullScheduleCount.textContent = String(matches.length);
+  fullScheduleVenueCount.textContent = String(stadiums.size);
+
+  if (!matches.length) {
+    fullScheduleRows.innerHTML = `
+      <tr>
+        <td colspan="6">Nenhum jogo encontrado para esse filtro.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  fullScheduleRows.innerHTML = matches
+    .map(
+      (match) => `
+        <tr>
+          <td data-label="Jogo"><strong>#${match.matchNumber}</strong></td>
+          <td data-label="Fase">${escapeHtml(match.stage)}</td>
+          <td data-label="Data">${escapeHtml(match.displayDate)}</td>
+          <td data-label="Hora">${escapeHtml(match.displayTime)}</td>
+          <td data-label="Confronto">${escapeHtml(match.homeTeam)} x ${escapeHtml(match.awayTeam)}</td>
+          <td data-label="Estadio">${escapeHtml(match.stadium)}<br><small>${escapeHtml(match.city)}</small></td>
+        </tr>
+      `
+    )
+    .join("");
 }
 
 function getResultValue(matchId, side) {
@@ -1532,12 +1622,18 @@ closeFullScheduleButton.addEventListener("click", () => {
   toggleFullScheduleModal(false);
 });
 
-loadFullScheduleFrame.addEventListener("click", () => {
-  loadScheduleFrame();
+fullScheduleStageFilter.addEventListener("change", () => {
+  renderFullSchedule();
+});
+
+fullScheduleSearch.addEventListener("input", () => {
+  renderFullSchedule();
 });
 
 applyAccessMode();
 expenseDate.valueAsDate = new Date();
+populateScheduleStageFilter();
+renderFullSchedule();
 renderMatches();
 renderPool();
 loadData();
