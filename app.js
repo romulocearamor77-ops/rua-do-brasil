@@ -72,7 +72,7 @@ let officialResults = {};
 let accessMode = localStorage.getItem(accessKey) === "admin" ? "admin" : "";
 const scheduleKey = "ruaBrasilTabelaCompleta";
 const scheduleVersionKey = "ruaBrasilTabelaCompletaVersao";
-const scheduleVersion = "2026-05-27-v2";
+const scheduleVersion = "2026-05-27-v3";
 const fullScheduleSeed = [
   {
     "matchNumber": 1,
@@ -1473,6 +1473,140 @@ const worldCupMatches = [
 
 officialResults = defaultResults();
 
+function scheduleGroupList(groups = "") {
+  return groups.split("/").join(", ");
+}
+
+function translateScheduleStage(stage = "") {
+  const labels = {
+    "Fase de grupos": "Fase de grupos",
+    "Fase de 32": "Primeira fase eliminatoria",
+    "Oitavas de final": "Oitavas de final",
+    "Quartas de final": "Quartas de final",
+    Semifinal: "Semifinal",
+    "Disputa do 3o lugar": "Disputa de terceiro lugar",
+    Final: "Final"
+  };
+  return labels[stage] || stage;
+}
+
+function translateScheduleTeam(label = "") {
+  const teamNames = {
+    Mexico: "Mexico",
+    "South Africa": "Africa do Sul",
+    "South Korea": "Coreia do Sul",
+    "Czech Republic": "Republica Tcheca",
+    Canada: "Canada",
+    "Bosnia and Herzegovina": "Bosnia e Herzegovina",
+    "United States": "Estados Unidos",
+    Paraguay: "Paraguai",
+    Haiti: "Haiti",
+    Scotland: "Escocia",
+    Australia: "Australia",
+    Turkey: "Turquia",
+    Brazil: "Brasil",
+    Morocco: "Marrocos",
+    Qatar: "Catar",
+    Switzerland: "Suica",
+    "Ivory Coast": "Costa do Marfim",
+    Ecuador: "Equador",
+    Germany: "Alemanha",
+    "Curaçao": "Curacao",
+    Netherlands: "Holanda",
+    Japan: "Japao",
+    Sweden: "Suecia",
+    Tunisia: "Tunisia",
+    "Saudi Arabia": "Arabia Saudita",
+    Uruguay: "Uruguai",
+    Spain: "Espanha",
+    "Cape Verde": "Cabo Verde",
+    Iran: "Ira",
+    "New Zealand": "Nova Zelandia",
+    Belgium: "Belgica",
+    Egypt: "Egito",
+    France: "Franca",
+    Senegal: "Senegal",
+    Iraq: "Iraque",
+    Norway: "Noruega",
+    Argentina: "Argentina",
+    Algeria: "Argelia",
+    Austria: "Austria",
+    Jordan: "Jordania",
+    Ghana: "Gana",
+    Panama: "Panama",
+    England: "Inglaterra",
+    Croatia: "Croacia",
+    Portugal: "Portugal",
+    "DR Congo": "Republica Democratica do Congo",
+    Uzbekistan: "Uzbequistao",
+    Colombia: "Colombia"
+  };
+
+  const direct = teamNames[label];
+  if (direct) {
+    return direct;
+  }
+
+  let match = label.match(/^Winner Match (\d+)$/);
+  if (match) {
+    return `Vencedor do Jogo ${match[1]}`;
+  }
+
+  match = label.match(/^Loser Match (\d+)$/);
+  if (match) {
+    return `Perdedor do Jogo ${match[1]}`;
+  }
+
+  match = label.match(/^Group ([A-L]) winners$/);
+  if (match) {
+    return `1o colocado do Grupo ${match[1]}`;
+  }
+
+  match = label.match(/^Group ([A-L]) runners-up$/);
+  if (match) {
+    return `2o colocado do Grupo ${match[1]}`;
+  }
+
+  match = label.match(/^Group ([A-L](?:\/[A-L])+) third place$/);
+  if (match) {
+    return `melhor 3o colocado entre os Grupos ${scheduleGroupList(match[1])}`;
+  }
+
+  return label;
+}
+
+function translateScheduleCity(city = "") {
+  const cities = {
+    "Mexico City": "Cidade do Mexico",
+    Guadalajara: "Guadalajara",
+    Toronto: "Toronto",
+    "Los Angeles": "Los Angeles",
+    Boston: "Boston",
+    Vancouver: "Vancouver",
+    "New York / New Jersey": "Nova York / Nova Jersey",
+    "San Francisco Bay Area": "Baia de San Francisco",
+    Philadelphia: "Filadelfia",
+    Houston: "Houston",
+    Dallas: "Dallas",
+    Monterrey: "Monterrey",
+    Miami: "Miami",
+    Seattle: "Seattle",
+    Atlanta: "Atlanta",
+    "Kansas City": "Kansas City"
+  };
+  return cities[city] || city;
+}
+
+function localizeScheduleMatch(match) {
+  return {
+    ...match,
+    stage: translateScheduleStage(match.stage),
+    homeTeam: translateScheduleTeam(match.homeTeam),
+    awayTeam: translateScheduleTeam(match.awayTeam),
+    city: translateScheduleCity(match.city)
+  };
+}
+
 function loadScheduleMemory() {
   const savedVersion = localStorage.getItem(scheduleVersionKey);
   const savedSchedule = readStorage(scheduleKey);
@@ -1481,9 +1615,10 @@ function loadScheduleMemory() {
     return savedSchedule;
   }
 
-  saveStorage(scheduleKey, fullScheduleSeed);
+  const localizedSchedule = fullScheduleSeed.map(localizeScheduleMatch);
+  saveStorage(scheduleKey, localizedSchedule);
   localStorage.setItem(scheduleVersionKey, scheduleVersion);
-  return fullScheduleSeed;
+  return localizedSchedule;
 }
 
 function isAdmin() {
