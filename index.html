@@ -48,6 +48,7 @@
         <div class="nav-links">
           <a href="#galeria">Galeria</a>
           <a href="#arrecadacao">Arrecadacao</a>
+          <a href="#prestacao">Prestacao</a>
           <button class="nav-button" id="logoutButton" type="button">Trocar acesso</button>
         </div>
       </nav>
@@ -57,7 +58,7 @@
         <h1>Fotos e videos da nossa rua na Copa</h1>
         <p>
           Acompanhe as lembrancas dos vizinhos enfeitando a rua para torcer
-          pelo Brasil.
+          pelo Brasil e acompanhe a prestacao de contas de cada gasto da decoracao.
         </p>
         <a class="hero-button" href="#galeria">Ver galeria</a>
       </section>
@@ -115,8 +116,8 @@
       <section class="finance-hero" id="arrecadacao">
         <div>
           <p class="eyebrow">Transparencia da rua</p>
-          <h2>Valores arrecadados</h2>
-          <p>Acompanhe separadamente as contribuicoes para bandeirinhas, tintas e decoracao.</p>
+          <h2>Arrecadacao e gastos detalhados</h2>
+          <p>Veja quanto entrou, quanto saiu e no que cada centavo foi usado para preparar a rua para a Copa 2026.</p>
         </div>
       </section>
 
@@ -124,6 +125,7 @@
         <div class="section-heading">
           <p class="eyebrow">Controle da contribuicao</p>
           <h2>Tabela de cotas</h2>
+          <p class="section-note">Cadastre quem contribuiu e acompanhe os valores pendentes.</p>
         </div>
 
         <form class="panel quota-form admin-only" id="quotaForm">
@@ -164,10 +166,75 @@
           </table>
         </div>
       </section>
+
+      <section class="section-shell expense-section" id="prestacao">
+        <div class="section-heading">
+          <p class="eyebrow">Livro-caixa da decoracao</p>
+          <h2>Prestacao de contas</h2>
+          <p class="section-note">Registre todas as despesas da rua com categoria, descricao e comprovante.</p>
+        </div>
+
+        <form class="panel expense-form admin-only" id="expenseForm">
+          <label>
+            Data
+            <input id="expenseDate" type="date" required>
+          </label>
+
+          <label>
+            Categoria
+            <select id="expenseCategory" required>
+              <option value="">Selecione</option>
+              <option value="Bandeirinhas">Bandeirinhas</option>
+              <option value="Tintas">Tintas</option>
+              <option value="Iluminacao">Iluminacao</option>
+              <option value="Estrutura">Estrutura</option>
+              <option value="Alimentacao">Alimentacao</option>
+              <option value="Som">Som</option>
+              <option value="Limpeza">Limpeza</option>
+              <option value="Outros">Outros</option>
+            </select>
+          </label>
+
+          <label>
+            Valor gasto
+            <input id="expenseValue" type="number" min="0" step="0.01" placeholder="0,00" required>
+          </label>
+
+          <label class="wide">
+            Descricao
+            <input id="expenseDescription" type="text" maxlength="160" placeholder="Ex.: 3 latas de tinta verde e amarela" required>
+          </label>
+
+          <label class="wide">
+            Comprovante ou observacao
+            <input id="expenseReceipt" type="url" placeholder="https://... ou link da nota/foto">
+          </label>
+
+          <button type="submit">Adicionar despesa</button>
+        </form>
+
+        <div class="summary" id="financeSummary"></div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Categoria</th>
+                <th>Descricao</th>
+                <th>Comprovante</th>
+                <th>Valor</th>
+                <th>Acoes</th>
+              </tr>
+            </thead>
+            <tbody id="expenseRows"></tbody>
+          </table>
+        </div>
+      </section>
     </main>
 
     <footer>
-      Feito para guardar a memoria da rua e organizar a torcida pelo Brasil.
+      Feito para guardar a memoria da rua, organizar a torcida e prestar contas com transparencia.
     </footer>
 
     <script src="app.js?v=3"></script>

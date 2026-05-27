@@ -22,7 +22,7 @@ html {
 body {
   margin: 0;
   color: var(--ink);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
   background: var(--paper);
 }
 
@@ -259,6 +259,10 @@ main {
   min-height: 70vh;
 }
 
+.expense-section {
+  min-height: 60vh;
+}
+
 .finance-hero {
   color: white;
   background:
@@ -306,7 +310,8 @@ main {
 }
 
 .media-form,
-.quota-form {
+.quota-form,
+.expense-form {
   display: grid;
   grid-template-columns: minmax(160px, 0.9fr) minmax(180px, 1fr) minmax(110px, 0.35fr) minmax(220px, 1.2fr) auto;
   gap: 14px;
@@ -326,6 +331,15 @@ main {
 
 .quota-form {
   grid-template-columns: minmax(220px, 1fr) minmax(140px, 0.5fr) minmax(140px, 0.5fr) auto;
+}
+
+.expense-form {
+  grid-template-columns: minmax(150px, 0.7fr) minmax(170px, 0.8fr) minmax(140px, 0.7fr) minmax(220px, 1.2fr) minmax(220px, 1.1fr) auto;
+  margin-bottom: 22px;
+}
+
+.wide {
+  min-width: 0;
 }
 
 label {
@@ -464,6 +478,20 @@ a:focus-visible {
 
 .summary-card:nth-child(3) {
   background: #806316;
+}
+
+.summary-card.balance-positive {
+  background: var(--green);
+}
+
+.summary-card.balance-negative {
+  background: var(--danger);
+}
+
+.receipt-link {
+  color: var(--blue);
+  font-weight: 700;
+  text-decoration: underline;
 }
 
 .summary-card span {

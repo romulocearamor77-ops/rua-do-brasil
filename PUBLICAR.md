@@ -8,6 +8,7 @@ Este projeto esta pronto para usar Supabase como banco de dados e armazenamento 
 2. Abra o SQL Editor.
 3. Cole e execute o conteudo de `supabase-schema.sql`.
 4. Va em Storage e crie um bucket publico chamado `rua-brasil-media`.
+5. O script agora tambem cria a tabela `expenses`, usada para a prestacao de contas detalhada.
 
 ## 2. Configurar o site
 
@@ -47,4 +48,4 @@ O arquivo `render.yaml` tambem permite usar Blueprint no Render, se preferir.
 
 ## Observacao importante
 
-Do jeito que esta, qualquer pessoa com o link pode adicionar, marcar e remover registros. Para uma rua ou familia isso pode ser suficiente. Se quiser controle por senha, o proximo passo e adicionar login de administradores.
+Do jeito que esta, qualquer pessoa com o link pode adicionar, marcar e remover registros. Para uma rua ou familia isso pode ser suficiente. O site agora tem login simples de administrador no navegador e uma secao de prestacao de contas para registrar cada despesa da decoracao.

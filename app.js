@@ -1,5 +1,6 @@
 const galleryKey = "ruaBrasilGaleria";
 const quotaKey = "ruaBrasilCotas";
+const expenseKey = "ruaBrasilDespesas";
 const accessKey = "ruaBrasilAccessMode";
 const config = window.RUA_BRASIL_CONFIG || {};
 const hasSupabase = Boolean(config.supabaseUrl && config.supabaseAnonKey && window.supabase);
@@ -26,6 +27,14 @@ const quotaValue = document.querySelector("#quotaValue");
 const quotaPaid = document.querySelector("#quotaPaid");
 const quotaRows = document.querySelector("#quotaRows");
 const quotaSummary = document.querySelector("#quotaSummary");
+const expenseForm = document.querySelector("#expenseForm");
+const expenseDate = document.querySelector("#expenseDate");
+const expenseCategory = document.querySelector("#expenseCategory");
+const expenseValue = document.querySelector("#expenseValue");
+const expenseDescription = document.querySelector("#expenseDescription");
+const expenseReceipt = document.querySelector("#expenseReceipt");
+const expenseRows = document.querySelector("#expenseRows");
+const financeSummary = document.querySelector("#financeSummary");
 const loginScreen = document.querySelector("#loginScreen");
 const visitorAccess = document.querySelector("#visitorAccess");
 const adminAccess = document.querySelector("#adminAccess");
@@ -36,6 +45,7 @@ const logoutButton = document.querySelector("#logoutButton");
 
 let gallery = [];
 let quotas = [];
+let expenses = [];
 let accessMode = localStorage.getItem(accessKey) || "";
 
 function isAdmin() {
@@ -55,6 +65,7 @@ function setAccessMode(mode) {
   applyAccessMode();
   renderGallery();
   renderQuotas();
+  renderExpenses();
 }
 
 function readStorage(key) {
@@ -164,41 +175,53 @@ async function loadData() {
         const data = await response.json();
         gallery = data.gallery || [];
         quotas = data.quotas || [];
+        expenses = data.expenses || [];
         showMessage("Dados salvos em banco persistente compartilhado.");
       } catch {
         gallery = readStorage(galleryKey);
         quotas = readStorage(quotaKey);
+        expenses = readStorage(expenseKey);
         showMessage("Nao foi possivel carregar o banco. Usando modo local neste navegador.", true);
       }
       renderGallery();
       renderQuotas();
+      renderExpenses();
       return;
     }
 
     gallery = readStorage(galleryKey);
     quotas = readStorage(quotaKey);
+    expenses = readStorage(expenseKey);
     showMessage("Modo local: configure o Supabase para salvar os dados na web.");
     renderGallery();
     renderQuotas();
+    renderExpenses();
     return;
   }
 
   showMessage("Conectado ao banco de dados. Carregando informacoes...");
-  const [{ data: galleryData, error: galleryError }, { data: quotaData, error: quotaError }] = await Promise.all([
+  const [
+    { data: galleryData, error: galleryError },
+    { data: quotaData, error: quotaError },
+    { data: expenseData, error: expenseError }
+  ] = await Promise.all([
     db.from("gallery_items").select("*").order("created_at", { ascending: false }),
-    db.from("quotas").select("*").order("created_at", { ascending: false })
+    db.from("quotas").select("*").order("created_at", { ascending: false }),
+    db.from("expenses").select("*").order("expense_date", { ascending: false }).order("created_at", { ascending: false })
   ]);
 
-  if (galleryError || quotaError) {
+  if (galleryError || quotaError || expenseError) {
     showMessage("Nao foi possivel carregar o banco. Confira a configuracao do Supabase.", true);
     return;
   }
 
   gallery = galleryData || [];
   quotas = quotaData || [];
+  expenses = expenseData || [];
   showMessage("Dados salvos em banco persistente.");
   renderGallery();
   renderQuotas();
+  renderExpenses();
 }
 
 async function saveJsonBlob() {
@@ -212,7 +235,7 @@ async function saveJsonBlob() {
       "Content-Type": "application/json",
       "Accept": "application/json"
     },
-    body: JSON.stringify({ gallery, quotas })
+    body: JSON.stringify({ gallery, quotas, expenses })
   });
 
   if (!response.ok) {
@@ -399,6 +422,81 @@ function renderQuotas() {
     }
 
     quotaRows.append(row);
+  });
+}
+
+function formatDate(dateString) {
+  if (!dateString) {
+    return "-";
+  }
+
+  const [year, month, day] = dateString.split("-");
+  if (!year || !month || !day) {
+    return dateString;
+  }
+
+  return `${day}/${month}/${year}`;
+}
+
+function renderExpenses() {
+  expenseRows.innerHTML = "";
+
+  const collectedTotal = quotas
+    .filter((item) => item.paid)
+    .reduce((total, item) => total + Number(item.value), 0);
+  const spentTotal = expenses
+    .reduce((total, item) => total + Number(item.value), 0);
+  const balance = collectedTotal - spentTotal;
+
+  financeSummary.innerHTML = `
+    <div class="summary-card"><span>Total arrecadado</span><strong>${money(collectedTotal)}</strong></div>
+    <div class="summary-card"><span>Total gasto</span><strong>${money(spentTotal)}</strong></div>
+    <div class="summary-card ${balance >= 0 ? "balance-positive" : "balance-negative"}"><span>Saldo atual</span><strong>${money(balance)}</strong></div>
+  `;
+
+  if (!expenses.length) {
+    expenseRows.innerHTML = '<tr><td colspan="6">Nenhuma despesa cadastrada ainda.</td></tr>';
+    return;
+  }
+
+  expenses.forEach((item) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${formatDate(item.expense_date || item.date)}</td>
+      <td>${item.category || "-"}</td>
+      <td></td>
+      <td></td>
+      <td>${money(item.value)}</td>
+      <td class="row-actions"></td>
+    `;
+    row.children[2].textContent = item.description;
+
+    const receiptCell = row.children[3];
+    if (item.receipt_url) {
+      const link = document.createElement("a");
+      link.href = item.receipt_url;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.className = "receipt-link";
+      link.textContent = "Ver comprovante";
+      receiptCell.append(link);
+    } else {
+      receiptCell.textContent = "-";
+    }
+
+    const actions = row.querySelector(".row-actions");
+    if (isAdmin()) {
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "small-danger";
+      remove.textContent = "Remover";
+      remove.addEventListener("click", () => removeExpense(item));
+      actions.append(remove);
+    } else {
+      actions.textContent = "Somente administrador";
+    }
+
+    expenseRows.append(row);
   });
 }
 
@@ -598,6 +696,7 @@ async function saveQuota() {
     }
     quotaForm.reset();
     renderQuotas();
+    renderExpenses();
     return;
   }
 
@@ -616,6 +715,7 @@ async function saveQuota() {
   quotaForm.reset();
   showMessage("Cota salva no banco persistente.");
   renderQuotas();
+  renderExpenses();
 }
 
 async function toggleQuota(item) {
@@ -634,6 +734,7 @@ async function toggleQuota(item) {
       showMessage("Nao foi possivel atualizar o banco. Alteracao salva apenas neste navegador.", true);
     }
     renderQuotas();
+    renderExpenses();
     return;
   }
 
@@ -647,6 +748,7 @@ async function toggleQuota(item) {
     entry.id === item.id ? { ...entry, paid: !entry.paid } : entry
   ));
   renderQuotas();
+  renderExpenses();
 }
 
 async function removeQuota(item) {
@@ -663,6 +765,7 @@ async function removeQuota(item) {
       showMessage("Nao foi possivel atualizar o banco. Alteracao salva apenas neste navegador.", true);
     }
     renderQuotas();
+    renderExpenses();
     return;
   }
 
@@ -674,6 +777,83 @@ async function removeQuota(item) {
 
   quotas = quotas.filter((entry) => entry.id !== item.id);
   renderQuotas();
+  renderExpenses();
+}
+
+async function saveExpense() {
+  const item = {
+    id: createId(),
+    date: expenseDate.value,
+    category: expenseCategory.value,
+    description: expenseDescription.value.trim(),
+    receipt_url: expenseReceipt.value.trim(),
+    value: Number(expenseValue.value)
+  };
+
+  if (!hasSupabase) {
+    expenses.unshift(item);
+    try {
+      if (hasJsonBlob) {
+        await saveJsonBlob();
+        showMessage("Despesa salva no banco persistente compartilhado.");
+      } else {
+        saveStorage(expenseKey, expenses);
+      }
+    } catch {
+      saveStorage(expenseKey, expenses);
+      showMessage("Nao foi possivel salvar no banco. Despesa salva apenas neste navegador.", true);
+    }
+    expenseForm.reset();
+    expenseDate.valueAsDate = new Date();
+    renderExpenses();
+    return;
+  }
+
+  const { data, error } = await db.from("expenses").insert({
+    category: item.category,
+    description: item.description,
+    receipt_url: item.receipt_url || null,
+    value: item.value,
+    expense_date: item.date
+  }).select().single();
+
+  if (error) {
+    showMessage("Nao foi possivel salvar a despesa no banco.", true);
+    return;
+  }
+
+  expenses.unshift(data);
+  expenseForm.reset();
+  expenseDate.valueAsDate = new Date();
+  showMessage("Despesa salva no banco persistente.");
+  renderExpenses();
+}
+
+async function removeExpense(item) {
+  if (!hasSupabase) {
+    expenses = expenses.filter((entry) => entry.id !== item.id);
+    try {
+      if (hasJsonBlob) {
+        await saveJsonBlob();
+      } else {
+        saveStorage(expenseKey, expenses);
+      }
+    } catch {
+      saveStorage(expenseKey, expenses);
+      showMessage("Nao foi possivel atualizar o banco. Alteracao salva apenas neste navegador.", true);
+    }
+    renderExpenses();
+    return;
+  }
+
+  const { error } = await db.from("expenses").delete().eq("id", item.id);
+  if (error) {
+    showMessage("Nao foi possivel remover a despesa.", true);
+    return;
+  }
+
+  expenses = expenses.filter((entry) => entry.id !== item.id);
+  renderExpenses();
 }
 
 mediaForm.addEventListener("submit", async (event) => {
@@ -737,6 +917,11 @@ quotaForm.addEventListener("submit", async (event) => {
   await saveQuota();
 });
 
+expenseForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  await saveExpense();
+});
+
 visitorAccess.addEventListener("click", () => {
   setAccessMode("visitor");
 });
@@ -769,4 +954,5 @@ logoutButton.addEventListener("click", () => {
 });
 
 applyAccessMode();
+expenseDate.valueAsDate = new Date();
 loadData();
