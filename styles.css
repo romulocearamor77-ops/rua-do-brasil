@@ -517,6 +517,13 @@ main {
   margin-top: 12px;
 }
 
+.bet-admin-summary {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 .finance-hero {
   color: white;
   background:

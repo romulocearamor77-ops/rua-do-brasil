@@ -30,6 +30,7 @@ const betMatchList = document.querySelector("#betMatchList");
 const resultsForm = document.querySelector("#resultsForm");
 const resultsList = document.querySelector("#resultsList");
 const rankingRows = document.querySelector("#rankingRows");
+const betAdminRows = document.querySelector("#betAdminRows");
 
 const quotaForm = document.querySelector("#quotaForm");
 const quotaName = document.querySelector("#quotaName");
@@ -607,11 +608,53 @@ function renderRanking() {
   });
 }
 
+function renderBetAdminTable() {
+  betAdminRows.innerHTML = "";
+
+  if (!bets.length) {
+    betAdminRows.innerHTML = '<tr><td colspan="3">Nenhum palpite cadastrado ainda.</td></tr>';
+    return;
+  }
+
+  bets
+    .slice()
+    .sort((left, right) => left.name.localeCompare(right.name, "pt-BR"))
+    .forEach((bet) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td data-label="Nome"></td>
+        <td data-label="Palpites"><div class="bet-admin-summary"></div></td>
+        <td class="row-actions" data-label="Acoes"></td>
+      `;
+
+      row.children[0].textContent = bet.name;
+
+      const summary = row.querySelector(".bet-admin-summary");
+      worldCupMatches.forEach((match) => {
+        const prediction = bet.predictions.find((item) => item.matchId === match.id);
+        const line = document.createElement("span");
+        line.textContent = `${match.homeTeam} ${prediction?.homeScore ?? "-"} x ${prediction?.awayScore ?? "-"} ${match.awayTeam}`;
+        summary.append(line);
+      });
+
+      const actions = row.querySelector(".row-actions");
+      const editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.className = "small-danger";
+      editButton.textContent = "Editar";
+      editButton.addEventListener("click", () => editBetEntry(bet));
+      actions.append(editButton);
+
+      betAdminRows.append(row);
+    });
+}
+
 function renderPool() {
   renderPoolStats();
   renderBetForm();
   renderResultsForm();
   renderRanking();
+  renderBetAdminTable();
 }
 
 function renderGallery() {
@@ -925,6 +968,64 @@ async function saveOfficialResults() {
     resultKey,
     officialResults,
     "Nao foi possivel salvar os resultados no banco compartilhado. Eles ficaram salvos apenas neste navegador."
+  );
+
+  renderPool();
+}
+
+async function editBetEntry(bet) {
+  const updatedPredictions = [];
+
+  for (const match of worldCupMatches) {
+    const currentPrediction = bet.predictions.find((item) => item.matchId === match.id) || {
+      homeScore: 0,
+      awayScore: 0
+    };
+
+    const nextHomeValue = prompt(
+      `Edite o palpite de ${bet.name} para ${match.homeTeam} x ${match.awayTeam}.\nGols de ${match.homeTeam}:`,
+      String(currentPrediction.homeScore)
+    );
+
+    if (nextHomeValue === null) {
+      return;
+    }
+
+    const nextAwayValue = prompt(
+      `Edite o palpite de ${bet.name} para ${match.homeTeam} x ${match.awayTeam}.\nGols de ${match.awayTeam}:`,
+      String(currentPrediction.awayScore)
+    );
+
+    if (nextAwayValue === null) {
+      return;
+    }
+
+    const homeScore = Number(nextHomeValue);
+    const awayScore = Number(nextAwayValue);
+
+    if (!Number.isInteger(homeScore) || homeScore < 0 || !Number.isInteger(awayScore) || awayScore < 0) {
+      showMessage("Os placares precisam ser numeros inteiros iguais ou maiores que zero.", true);
+      return;
+    }
+
+    updatedPredictions.push({
+      matchId: match.id,
+      homeScore,
+      awayScore
+    });
+  }
+
+  bets = bets.map((entry) => (
+    entry.id === bet.id
+      ? { ...entry, predictions: updatedPredictions, updatedAt: new Date().toISOString() }
+      : entry
+  ));
+
+  await persistPoolData(
+    "Palpite atualizado com sucesso.",
+    betKey,
+    bets,
+    "Nao foi possivel salvar a edicao no banco compartilhado. Alteracao salva apenas neste navegador."
   );
 
   renderPool();
