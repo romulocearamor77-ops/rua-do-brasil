@@ -395,10 +395,10 @@ function renderQuotas() {
     const statusText = item.paid ? "Pago" : "Pendente";
 
     row.innerHTML = `
-      <td></td>
-      <td>${money(item.value)}</td>
-      <td><span class="status ${statusClass}">${statusText}</span></td>
-      <td class="row-actions"></td>
+      <td data-label="Nome"></td>
+      <td data-label="Valor">${money(item.value)}</td>
+      <td data-label="Status"><span class="status ${statusClass}">${statusText}</span></td>
+      <td class="row-actions" data-label="Acoes"></td>
     `;
     row.children[0].textContent = item.name;
 
@@ -462,12 +462,12 @@ function renderExpenses() {
   expenses.forEach((item) => {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td>${formatDate(item.expense_date || item.date)}</td>
-      <td>${item.category || "-"}</td>
-      <td></td>
-      <td></td>
-      <td>${money(item.value)}</td>
-      <td class="row-actions"></td>
+      <td data-label="Data">${formatDate(item.expense_date || item.date)}</td>
+      <td data-label="Categoria">${item.category || "-"}</td>
+      <td data-label="Descricao"></td>
+      <td data-label="Comprovante"></td>
+      <td data-label="Valor">${money(item.value)}</td>
+      <td class="row-actions" data-label="Acoes"></td>
     `;
     row.children[2].textContent = item.description;
 
