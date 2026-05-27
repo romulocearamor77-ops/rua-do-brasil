@@ -20,7 +20,7 @@
     </script>
   </head>
   <body>
-    <section class="login-screen" id="loginScreen" hidden>
+    <section class="login-screen" id="loginScreen">
       <div class="login-panel">
         <p class="eyebrow">Rua do Brasil</p>
         <h1>Entrar no mural da Copa</h1>
@@ -99,7 +99,7 @@
           <p class="eyebrow">Brincadeira da vizinhanca</p>
           <h2>Bolao dos jogos do Brasil</h2>
           <p class="section-note">
-            Cada palpite exato vale mais no ranking. Se acertar o vencedor ou empate sem cravar o placar, voce tambem soma ponto.
+            Visitantes tambem podem palpitar. A pontuacao e de 3 pontos por acertar vitoria ou empate e 6 pontos por acertar o placar exato.
           </p>
         </div>
 
@@ -115,7 +115,7 @@
               <div class="bet-match-list" id="betMatchList"></div>
 
               <p class="form-note">
-                Pontuacao do ranking: 3 pontos por placar exato e 1 ponto por acertar o vencedor ou empate.
+                Pontuacao do ranking: 3 pontos por acertar vitoria ou empate e 6 pontos por acertar o placar exato.
               </p>
 
               <button type="submit">Salvar meus palpites</button>
@@ -138,7 +138,19 @@
                   <p class="section-note">Atualiza automaticamente quando os resultados oficiais forem preenchidos.</p>
                 </div>
               </div>
-              <div class="ranking-list" id="rankingList"></div>
+              <div class="table-wrap ranking-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Nome</th>
+                      <th>Pontos</th>
+                      <th>Placares exatos</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rankingRows"></tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -316,6 +328,6 @@
       Feito para guardar a memoria da rua, organizar a torcida e prestar contas com transparencia.
     </footer>
 
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=5"></script>
   </body>
 </html>

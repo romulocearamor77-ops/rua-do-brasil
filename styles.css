@@ -464,16 +464,14 @@ main {
 }
 
 .bet-card,
-.result-card,
-.ranking-card {
+.result-card {
   border: 1px solid var(--line);
   border-radius: 18px;
   padding: 16px;
   background: #fbfdf8;
 }
 
-.bet-card-header,
-.ranking-card-top {
+.bet-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -482,13 +480,11 @@ main {
 }
 
 .bet-card-header strong,
-.result-card strong,
-.ranking-card strong {
+.result-card strong {
   color: var(--deep-green);
 }
 
 .bet-date,
-.ranking-meta,
 .result-card p {
   margin: 0;
   color: var(--muted);
@@ -517,41 +513,8 @@ main {
   line-height: 1.45;
 }
 
-.ranking-list {
-  display: grid;
-  gap: 14px;
-}
-
-.ranking-position {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: white;
-  font-weight: 800;
-  background: var(--blue);
-}
-
-.ranking-points {
-  color: var(--deep-green);
-  font-size: 1.15rem;
-}
-
-.ranking-breakdown {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  color: var(--muted);
-  font-size: 0.92rem;
-}
-
-.ranking-empty {
-  padding: 20px;
-  border: 1px dashed #b8c8b3;
-  border-radius: 16px;
-  color: var(--muted);
-  background: white;
+.ranking-table-wrap {
+  margin-top: 12px;
 }
 
 .finance-hero {

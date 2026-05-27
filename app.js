@@ -29,7 +29,7 @@ const bettorName = document.querySelector("#bettorName");
 const betMatchList = document.querySelector("#betMatchList");
 const resultsForm = document.querySelector("#resultsForm");
 const resultsList = document.querySelector("#resultsList");
-const rankingList = document.querySelector("#rankingList");
+const rankingRows = document.querySelector("#rankingRows");
 
 const quotaForm = document.querySelector("#quotaForm");
 const quotaName = document.querySelector("#quotaName");
@@ -58,7 +58,7 @@ let quotas = [];
 let expenses = [];
 let bets = [];
 let officialResults = {};
-let accessMode = localStorage.getItem(accessKey) || "visitor";
+let accessMode = localStorage.getItem(accessKey) === "admin" ? "admin" : "";
 
 const worldCupMatches = [
   {
@@ -103,10 +103,6 @@ const worldCupMatches = [
 ];
 
 officialResults = defaultResults();
-
-if (!localStorage.getItem(accessKey)) {
-  localStorage.setItem(accessKey, accessMode);
-}
 
 function isAdmin() {
   return accessMode === "admin";
@@ -488,11 +484,11 @@ function scorePrediction(prediction, matchId) {
   const officialAway = Number(result.awayScore);
 
   if (predictedHome === officialHome && predictedAway === officialAway) {
-    return { points: 3, exact: 1 };
+    return { points: 6, exact: 1 };
   }
 
   if (outcomeLabel(predictedHome, predictedAway) === outcomeLabel(officialHome, officialAway)) {
-    return { points: 1, exact: 0 };
+    return { points: 3, exact: 0 };
   }
 
   return { points: 0, exact: 0 };
@@ -590,32 +586,24 @@ function renderResultsForm() {
 }
 
 function renderRanking() {
-  rankingList.innerHTML = "";
+  rankingRows.innerHTML = "";
   const ranking = buildRanking();
 
   if (!ranking.length) {
-    rankingList.innerHTML = '<div class="ranking-empty">Ainda nao ha palpites cadastrados. O primeiro morador a palpitar ja estreia na lideranca.</div>';
+    rankingRows.innerHTML = '<tr><td colspan="4">Ainda nao ha palpites cadastrados. O primeiro morador a palpitar ja estreia na lideranca.</td></tr>';
     return;
   }
 
   ranking.forEach((entry, index) => {
-    const card = document.createElement("article");
-    card.className = "ranking-card";
-    card.innerHTML = `
-      <div class="ranking-card-top">
-        <div class="ranking-position">${index + 1}</div>
-        <div>
-          <strong>${entry.name}</strong>
-          <p class="ranking-meta">${entry.predictions.length} jogos preenchidos</p>
-        </div>
-        <strong class="ranking-points">${entry.points} pts</strong>
-      </div>
-      <div class="ranking-breakdown">
-        <span>${entry.exactHits} placares exatos</span>
-        <span>${worldCupMatches.filter((match) => hasOfficialResult(match.id)).length} jogos com resultado oficial</span>
-      </div>
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td data-label="Posicao">${index + 1}</td>
+      <td data-label="Nome"></td>
+      <td data-label="Pontos">${entry.points}</td>
+      <td data-label="Placares exatos">${entry.exactHits}</td>
     `;
-    rankingList.append(card);
+    row.children[1].textContent = entry.name;
+    rankingRows.append(row);
   });
 }
 
