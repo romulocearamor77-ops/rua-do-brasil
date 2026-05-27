@@ -22,6 +22,11 @@ const yearFilter = document.querySelector("#yearFilter");
 const galleryGrid = document.querySelector("#galleryGrid");
 const clearGallery = document.querySelector("#clearGallery");
 const connectionStatus = document.querySelector("#connectionStatus");
+const openFullSchedule = document.querySelector("#openFullSchedule");
+const fullScheduleNavLink = document.querySelector("#fullScheduleNavLink");
+const fullScheduleModal = document.querySelector("#fullScheduleModal");
+const closeFullSchedule = document.querySelector("#closeFullSchedule");
+const closeFullScheduleButton = document.querySelector("#closeFullScheduleButton");
 const matchGrid = document.querySelector("#matchGrid");
 const poolStats = document.querySelector("#poolStats");
 const betForm = document.querySelector("#betForm");
@@ -125,6 +130,11 @@ function setAccessMode(mode) {
   renderGallery();
   renderQuotas();
   renderExpenses();
+}
+
+function toggleFullScheduleModal(show) {
+  fullScheduleModal.hidden = !show;
+  document.body.classList.toggle("is-locked", show || !accessMode);
 }
 
 function readStorage(key) {
@@ -1492,6 +1502,23 @@ logoutButton.addEventListener("click", () => {
   adminLoginForm.hidden = true;
   loginMessage.textContent = "";
   applyAccessMode();
+});
+
+openFullSchedule.addEventListener("click", () => {
+  toggleFullScheduleModal(true);
+});
+
+fullScheduleNavLink.addEventListener("click", (event) => {
+  event.preventDefault();
+  toggleFullScheduleModal(true);
+});
+
+closeFullSchedule.addEventListener("click", () => {
+  toggleFullScheduleModal(false);
+});
+
+closeFullScheduleButton.addEventListener("click", () => {
+  toggleFullScheduleModal(false);
 });
 
 applyAccessMode();

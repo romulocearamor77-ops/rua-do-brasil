@@ -47,6 +47,7 @@
         <strong>Rua do Brasil</strong>
         <div class="nav-links">
           <a href="#jogos">Jogos</a>
+          <a href="#tabela-completa" id="fullScheduleNavLink">Tabela completa</a>
           <a href="#galeria">Galeria</a>
           <a href="#bolao">Bolao</a>
           <a href="#arrecadacao">Arrecadacao</a>
@@ -79,6 +80,9 @@
           </div>
 
           <div class="match-grid" id="matchGrid"></div>
+          <div class="hero-actions">
+            <button class="hero-button ghost-hero" id="openFullSchedule" type="button">Tabela completa de jogos da Copa</button>
+          </div>
         </div>
 
         <div class="hero-panel pool-callout">
@@ -341,10 +345,41 @@
       </section>
     </main>
 
+    <section class="schedule-modal" id="fullScheduleModal" hidden aria-labelledby="fullScheduleTitle">
+      <div class="schedule-modal-backdrop" id="closeFullSchedule"></div>
+      <div class="schedule-modal-panel" role="dialog" aria-modal="true">
+        <div class="schedule-modal-header">
+          <div>
+            <p class="eyebrow">Calendario oficial</p>
+            <h2 id="fullScheduleTitle">Tabela completa da Copa do Mundo 2026</h2>
+            <p class="section-note">
+              Visualize todos os jogos com datas, horarios e estadios. Fonte oficial: FIFA.
+            </p>
+          </div>
+          <button class="nav-button" id="closeFullScheduleButton" type="button">Fechar</button>
+        </div>
+
+        <div class="schedule-modal-tools">
+          <a class="hero-button" href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums" target="_blank" rel="noopener">Abrir tabela oficial da FIFA</a>
+        </div>
+
+        <div class="schedule-embed-shell">
+          <iframe
+            id="fullScheduleFrame"
+            title="Tabela completa oficial da Copa do Mundo 2026"
+            src="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums"
+          ></iframe>
+          <div class="schedule-embed-fallback">
+            <p>Se a tabela nao carregar aqui, use o botao acima para abrir a pagina oficial completa da FIFA.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <footer>
       Feito para guardar a memoria da rua, organizar a torcida e prestar contas com transparencia.
     </footer>
 
-    <script src="app.js?v=7"></script>
+    <script src="app.js?v=8"></script>
   </body>
 </html>

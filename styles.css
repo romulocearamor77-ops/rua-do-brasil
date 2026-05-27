@@ -524,6 +524,81 @@ main {
   font-size: 0.92rem;
 }
 
+.schedule-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.schedule-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 19, 14, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.schedule-modal-panel {
+  position: relative;
+  z-index: 1;
+  width: min(1240px, 100%);
+  max-height: min(90vh, 980px);
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #f8fbf4;
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.28);
+}
+
+.schedule-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.schedule-modal-header .eyebrow {
+  color: var(--green);
+}
+
+.schedule-modal-header h2 {
+  margin: 0;
+}
+
+.schedule-modal-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.schedule-embed-shell {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  overflow: hidden;
+  background: white;
+}
+
+.schedule-embed-shell iframe {
+  width: 100%;
+  min-height: 62vh;
+  border: 0;
+  background: white;
+}
+
+.schedule-embed-fallback {
+  padding: 14px 16px;
+  color: var(--muted);
+  background: #f6faf2;
+  border-top: 1px solid var(--line);
+}
+
 .finance-hero {
   color: white;
   background:
@@ -914,6 +989,29 @@ footer {
 
   .hero-actions .hero-button {
     width: 100%;
+  }
+
+  .schedule-modal {
+    padding: 10px;
+  }
+
+  .schedule-modal-panel {
+    max-height: 94vh;
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .schedule-modal-header {
+    flex-direction: column;
+  }
+
+  .schedule-modal-header .nav-button,
+  .schedule-modal-tools .hero-button {
+    width: 100%;
+  }
+
+  .schedule-embed-shell iframe {
+    min-height: 58vh;
   }
 
   .hero h1 {
