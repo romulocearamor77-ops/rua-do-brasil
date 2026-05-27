@@ -163,10 +163,10 @@ function normalizeName(value = "") {
 
 function flagEmoji(code = "") {
   const flags = {
-    BR: "BR",
-    MA: "MA",
-    HT: "HT",
-    SC: "SC"
+    BR: "🇧🇷",
+    MA: "🇲🇦",
+    HT: "🇭🇹",
+    SC: "🏴"
   };
   return flags[code] || code;
 }
