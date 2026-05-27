@@ -5,6 +5,6 @@ window.RUA_BRASIL_CONFIG = {
   jsonBlobUrl: "https://mantledb.sh/v2/rua-do-brasil-d1cf0ceea0a14dc09dff465505766f41/data",
   adminPassword: "brasil2026",
   maxVideoSeconds: 30,
-  cloudinaryCloudName: "",
-  cloudinaryUploadPreset: ""
+  cloudinaryCloudName: "dvxne4jdr",
+  cloudinaryUploadPreset: "rua_do_brasil"
 };
