@@ -4,6 +4,8 @@ const accessKey = "ruaBrasilAccessMode";
 const config = window.RUA_BRASIL_CONFIG || {};
 const hasSupabase = Boolean(config.supabaseUrl && config.supabaseAnonKey && window.supabase);
 const hasJsonBlob = Boolean(config.jsonBlobUrl);
+const hasCloudinary = Boolean(config.cloudinaryCloudName && config.cloudinaryUploadPreset);
+const maxVideoSeconds = Number(config.maxVideoSeconds || 30);
 const db = hasSupabase
   ? window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey)
   : null;
@@ -219,12 +221,71 @@ async function saveJsonBlob() {
 }
 
 function canStoreFileInJson(file) {
-  if (!hasJsonBlob || hasSupabase) {
+  if (!hasJsonBlob || hasSupabase || hasCloudinary) {
     return true;
   }
 
   const maxBytes = 700 * 1024;
   return file.size <= maxBytes;
+}
+
+function getVideoDuration(file) {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement("video");
+    const objectUrl = URL.createObjectURL(file);
+
+    video.preload = "metadata";
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(video.duration);
+    };
+    video.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Nao foi possivel ler a duracao do video"));
+    };
+    video.src = objectUrl;
+  });
+}
+
+async function validateMediaFile(file) {
+  if (!file.type.startsWith("video")) {
+    return true;
+  }
+
+  try {
+    const duration = await getVideoDuration(file);
+    if (duration > maxVideoSeconds + 0.5) {
+      showMessage(`O video tem ${Math.ceil(duration)} segundos. O limite e ${maxVideoSeconds} segundos.`, true);
+      return false;
+    }
+    return true;
+  } catch {
+    showMessage("Nao foi possivel verificar a duracao do video. Tente outro arquivo.", true);
+    return false;
+  }
+}
+
+async function uploadToCloudinary(file, item) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", config.cloudinaryUploadPreset);
+  formData.append("folder", "rua-do-brasil");
+  formData.append("public_id", `${item.year}-${item.id}`);
+
+  const resourceType = file.type.startsWith("video") ? "video" : "image";
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${config.cloudinaryCloudName}/${resourceType}/upload`,
+    {
+      method: "POST",
+      body: formData
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Falha ao enviar para o Cloudinary");
+  }
+
+  return response.json();
 }
 
 function renderYearFilter() {
@@ -384,6 +445,11 @@ async function saveGalleryLink(url) {
 }
 
 async function saveGalleryItem(file) {
+  const validFile = await validateMediaFile(file);
+  if (!validFile) {
+    return;
+  }
+
   const item = {
     id: createId(),
     year: Number(mediaYear.value),
@@ -391,9 +457,35 @@ async function saveGalleryItem(file) {
     type: file.type
   };
 
+  if (hasCloudinary && !hasSupabase) {
+    showMessage("Enviando midia para o storage...");
+    try {
+      const upload = await uploadToCloudinary(file, item);
+      const savedItem = {
+        ...item,
+        externalUrl: upload.secure_url,
+        type: file.type || upload.resource_type
+      };
+
+      gallery.unshift(savedItem);
+      if (hasJsonBlob) {
+        await saveJsonBlob();
+      } else {
+        saveStorage(galleryKey, gallery);
+      }
+
+      mediaForm.reset();
+      showMessage("Midia salva no storage e publicada na galeria.");
+      renderGallery();
+    } catch {
+      showMessage("Nao foi possivel enviar o arquivo para o storage. Confira a configuracao do Cloudinary.", true);
+    }
+    return;
+  }
+
   if (!hasSupabase) {
     if (!canStoreFileInJson(file)) {
-      showMessage("Este arquivo e grande para o banco atual. Envie o video para YouTube, Google Drive, Dropbox ou outro servico e cole o link em Link da midia.", true);
+      showMessage("Este arquivo e grande para o banco atual. Para salvar videos de ate 30 segundos como arquivo, configure Cloudinary ou Supabase Storage.", true);
       return;
     }
 

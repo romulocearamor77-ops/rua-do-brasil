@@ -12,7 +12,10 @@
         supabaseAnonKey: "",
         mediaBucket: "rua-brasil-media",
         jsonBlobUrl: "https://mantledb.sh/v2/rua-do-brasil-d1cf0ceea0a14dc09dff465505766f41/data",
-        adminPassword: "brasil2026"
+        adminPassword: "brasil2026",
+        maxVideoSeconds: 30,
+        cloudinaryCloudName: "",
+        cloudinaryUploadPreset: ""
       };
     </script>
   </head>
@@ -69,6 +72,10 @@
         </div>
 
         <form class="panel media-form admin-only" id="mediaForm">
+          <p class="form-note">
+            Videos enviados como arquivo precisam ter ate 30 segundos. Para arquivos grandes, configure Cloudinary/Supabase ou use o campo Link da midia.
+          </p>
+
           <label>
             Foto ou video
             <input id="mediaFile" type="file" accept="image/*,video/*">

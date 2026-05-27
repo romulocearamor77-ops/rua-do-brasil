@@ -3,5 +3,8 @@ window.RUA_BRASIL_CONFIG = {
   supabaseAnonKey: "",
   mediaBucket: "rua-brasil-media",
   jsonBlobUrl: "https://mantledb.sh/v2/rua-do-brasil-d1cf0ceea0a14dc09dff465505766f41/data",
-  adminPassword: "brasil2026"
+  adminPassword: "brasil2026",
+  maxVideoSeconds: 30,
+  cloudinaryCloudName: "",
+  cloudinaryUploadPreset: ""
 };
