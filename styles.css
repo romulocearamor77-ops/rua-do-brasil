@@ -308,7 +308,7 @@ main {
 .media-form,
 .quota-form {
   display: grid;
-  grid-template-columns: minmax(170px, 1fr) minmax(130px, 0.45fr) minmax(240px, 1.4fr) auto;
+  grid-template-columns: minmax(160px, 0.9fr) minmax(180px, 1fr) minmax(110px, 0.35fr) minmax(220px, 1.2fr) auto;
   gap: 14px;
   align-items: end;
 }
@@ -376,12 +376,31 @@ a:focus-visible {
 }
 
 .media-card img,
-.media-card video {
+.media-card video,
+.media-card iframe,
+.media-link-preview {
   display: block;
   width: 100%;
   aspect-ratio: 4 / 3;
-  object-fit: cover;
   background: #dbe7da;
+}
+
+.media-card img,
+.media-card video {
+  object-fit: cover;
+}
+
+.media-card iframe {
+  border: 0;
+}
+
+.media-link-preview {
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  color: var(--blue);
+  font-weight: 700;
+  text-decoration: underline;
 }
 
 .media-card-content {

@@ -10,6 +10,7 @@ const db = hasSupabase
 
 const mediaForm = document.querySelector("#mediaForm");
 const mediaFile = document.querySelector("#mediaFile");
+const mediaLink = document.querySelector("#mediaLink");
 const mediaYear = document.querySelector("#mediaYear");
 const mediaCaption = document.querySelector("#mediaCaption");
 const yearFilter = document.querySelector("#yearFilter");
@@ -78,11 +79,71 @@ function createId() {
 }
 
 function mediaUrl(item) {
-  return item.media_url || item.dataUrl;
+  return item.media_url || item.dataUrl || item.externalUrl;
 }
 
 function mediaType(item) {
-  return item.media_type || item.type || "";
+  return item.media_type || item.type || guessMediaType(mediaUrl(item));
+}
+
+function guessMediaType(url = "") {
+  const cleanUrl = url.split("?")[0].toLowerCase();
+  if (isYoutubeUrl(url) || cleanUrl.endsWith(".mp4") || cleanUrl.endsWith(".webm") || cleanUrl.endsWith(".mov")) {
+    return "video/link";
+  }
+  return "image/link";
+}
+
+function isYoutubeUrl(url = "") {
+  return url.includes("youtube.com/watch") || url.includes("youtu.be/");
+}
+
+function youtubeEmbedUrl(url = "") {
+  try {
+    const parsed = new URL(url);
+    const id = parsed.hostname.includes("youtu.be")
+      ? parsed.pathname.replace("/", "")
+      : parsed.searchParams.get("v");
+    return id ? `https://www.youtube.com/embed/${id}` : "";
+  } catch {
+    return "";
+  }
+}
+
+function isDirectMediaUrl(url = "") {
+  const cleanUrl = url.split("?")[0].toLowerCase();
+  return /\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/.test(cleanUrl);
+}
+
+function createMediaElement(item) {
+  const url = mediaUrl(item);
+
+  if (isYoutubeUrl(url)) {
+    const iframe = document.createElement("iframe");
+    iframe.src = youtubeEmbedUrl(url);
+    iframe.title = item.caption;
+    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+    iframe.allowFullscreen = true;
+    return iframe;
+  }
+
+  if (!item.dataUrl && !isDirectMediaUrl(url)) {
+    const link = document.createElement("a");
+    link.className = "media-link-preview";
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "Abrir midia";
+    return link;
+  }
+
+  const media = document.createElement(mediaType(item).startsWith("video") ? "video" : "img");
+  media.src = url;
+  media.alt = item.caption;
+  if (media.tagName === "VIDEO") {
+    media.controls = true;
+  }
+  return media;
 }
 
 function showMessage(message, isError = false) {
@@ -157,6 +218,15 @@ async function saveJsonBlob() {
   }
 }
 
+function canStoreFileInJson(file) {
+  if (!hasJsonBlob || hasSupabase) {
+    return true;
+  }
+
+  const maxBytes = 700 * 1024;
+  return file.size <= maxBytes;
+}
+
 function renderYearFilter() {
   const selected = yearFilter.value;
   const years = [...new Set(gallery.map((item) => item.year))].sort((a, b) => b - a);
@@ -193,12 +263,7 @@ function renderGallery() {
     const card = document.createElement("article");
     card.className = "media-card";
 
-    const media = document.createElement(mediaType(item).startsWith("video") ? "video" : "img");
-    media.src = mediaUrl(item);
-    media.alt = item.caption;
-    if (media.tagName === "VIDEO") {
-      media.controls = true;
-    }
+    const media = createMediaElement(item);
 
     const content = document.createElement("div");
     content.className = "media-card-content";
@@ -276,6 +341,48 @@ function renderQuotas() {
   });
 }
 
+async function saveGalleryLink(url) {
+  const item = {
+    id: createId(),
+    year: Number(mediaYear.value),
+    caption: mediaCaption.value.trim(),
+    type: guessMediaType(url),
+    externalUrl: url
+  };
+
+  gallery.unshift(item);
+
+  try {
+    if (hasSupabase) {
+      const { data, error } = await db.from("gallery_items").insert({
+        year: item.year,
+        caption: item.caption,
+        media_url: item.externalUrl,
+        media_path: "",
+        media_type: item.type
+      }).select().single();
+
+      if (error) {
+        throw error;
+      }
+
+      gallery = [data, ...gallery.filter((entry) => entry.id !== item.id)];
+    } else if (hasJsonBlob) {
+      await saveJsonBlob();
+    } else {
+      saveStorage(galleryKey, gallery);
+    }
+
+    mediaForm.reset();
+    showMessage("Link salvo no banco persistente compartilhado.");
+    renderGallery();
+  } catch {
+    gallery = gallery.filter((entry) => entry.id !== item.id);
+    showMessage("Nao foi possivel salvar o link no banco. Tente novamente.", true);
+    renderGallery();
+  }
+}
+
 async function saveGalleryItem(file) {
   const item = {
     id: createId(),
@@ -285,6 +392,11 @@ async function saveGalleryItem(file) {
   };
 
   if (!hasSupabase) {
+    if (!canStoreFileInJson(file)) {
+      showMessage("Este arquivo e grande para o banco atual. Envie o video para YouTube, Google Drive, Dropbox ou outro servico e cole o link em Link da midia.", true);
+      return;
+    }
+
     const reader = new FileReader();
     reader.addEventListener("load", async () => {
       gallery.unshift({ ...item, dataUrl: reader.result });
@@ -296,8 +408,9 @@ async function saveGalleryItem(file) {
           saveStorage(galleryKey, gallery);
         }
       } catch {
+        gallery = gallery.filter((entry) => entry.id !== item.id);
         saveStorage(galleryKey, gallery);
-        showMessage("Nao foi possivel salvar no banco. Registro salvo apenas neste navegador.", true);
+        showMessage("Nao foi possivel salvar no banco. O registro nao foi publicado.", true);
       }
       mediaForm.reset();
       renderGallery();
@@ -474,12 +587,21 @@ async function removeQuota(item) {
 mediaForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const [file] = mediaFile.files;
+  const link = mediaLink.value.trim();
 
-  if (!file) {
+  if (!file && !link) {
+    showMessage("Escolha um arquivo ou cole um link de foto/video.", true);
     return;
   }
 
-  await saveGalleryItem(file);
+  if (link) {
+    await saveGalleryLink(link);
+    return;
+  }
+
+  if (file) {
+    await saveGalleryItem(file);
+  }
 });
 
 yearFilter.addEventListener("change", renderGallery);
