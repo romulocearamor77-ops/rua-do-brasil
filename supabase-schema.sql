@@ -34,6 +34,7 @@ alter table public.expenses enable row level security;
 
 drop policy if exists "Galeria publica para leitura" on public.gallery_items;
 drop policy if exists "Galeria publica para inserir" on public.gallery_items;
+drop policy if exists "Galeria publica para atualizar" on public.gallery_items;
 drop policy if exists "Galeria publica para remover" on public.gallery_items;
 drop policy if exists "Cotas publicas para leitura" on public.quotas;
 drop policy if exists "Cotas publicas para inserir" on public.quotas;
@@ -49,6 +50,11 @@ create policy "Galeria publica para leitura"
 
 create policy "Galeria publica para inserir"
   on public.gallery_items for insert
+  with check (true);
+
+create policy "Galeria publica para atualizar"
+  on public.gallery_items for update
+  using (true)
   with check (true);
 
 create policy "Galeria publica para remover"

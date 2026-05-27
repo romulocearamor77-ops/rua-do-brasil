@@ -643,17 +643,82 @@ function renderGallery() {
     content.querySelector("p").textContent = item.caption;
 
     if (isAdmin()) {
+      const edit = document.createElement("button");
+      edit.className = "small-danger";
+      edit.type = "button";
+      edit.textContent = "Editar";
+      edit.addEventListener("click", () => editGalleryItem(item));
+
       const remove = document.createElement("button");
       remove.className = "small-danger";
       remove.type = "button";
       remove.textContent = "Remover";
       remove.addEventListener("click", () => removeGalleryItem(item));
-      content.append(remove);
+      content.append(edit, remove);
     }
 
     card.append(media, content);
     galleryGrid.append(card);
   });
+}
+
+async function editGalleryItem(item) {
+  const currentYear = item.year;
+  const currentCaption = item.caption;
+  const yearValue = prompt("Edite o ano deste registro:", String(currentYear));
+  if (yearValue === null) {
+    return;
+  }
+
+  const nextYear = Number(yearValue);
+  if (!Number.isInteger(nextYear) || nextYear < 1930 || nextYear > 2100) {
+    showMessage("Digite um ano valido entre 1930 e 2100.", true);
+    return;
+  }
+
+  const captionValue = prompt("Edite o titulo ou legenda deste registro:", currentCaption);
+  if (captionValue === null) {
+    return;
+  }
+
+  const nextCaption = captionValue.trim();
+  if (!nextCaption) {
+    showMessage("O titulo nao pode ficar vazio.", true);
+    return;
+  }
+
+  const updatedItem = { ...item, year: nextYear, caption: nextCaption };
+
+  if (!hasSupabase) {
+    gallery = gallery.map((entry) => (entry.id === item.id ? updatedItem : entry));
+    try {
+      if (hasJsonBlob) {
+        await saveJsonBlob();
+      } else {
+        saveStorage(galleryKey, gallery);
+      }
+      showMessage("Registro atualizado com sucesso.");
+    } catch {
+      saveStorage(galleryKey, gallery);
+      showMessage("Nao foi possivel atualizar no banco compartilhado. Alteracao salva apenas neste navegador.", true);
+    }
+    renderGallery();
+    return;
+  }
+
+  const { data, error } = await db.from("gallery_items").update({
+    year: nextYear,
+    caption: nextCaption
+  }).eq("id", item.id).select().single();
+
+  if (error) {
+    showMessage("Nao foi possivel atualizar este registro.", true);
+    return;
+  }
+
+  gallery = gallery.map((entry) => (entry.id === item.id ? data : entry));
+  showMessage("Registro atualizado com sucesso.");
+  renderGallery();
 }
 
 function renderQuotas() {
