@@ -234,6 +234,21 @@ button {
   gap: 16px;
 }
 
+.hero-pix-qr {
+  flex: 0 0 auto;
+  padding: 10px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.hero-pix-qr img {
+  display: block;
+  width: 132px;
+  height: 132px;
+  border-radius: 10px;
+}
+
 .hero-pix-label {
   display: block;
   margin-bottom: 6px;
@@ -1363,6 +1378,10 @@ footer {
   .hero-pix-copy {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .hero-pix-qr {
+    align-self: center;
   }
 
   .hero-pix-button {
