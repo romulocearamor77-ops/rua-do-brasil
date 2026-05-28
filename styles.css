@@ -215,6 +215,50 @@ button {
   background: rgba(255, 255, 255, 0.12);
 }
 
+.hero-pix-card {
+  width: min(620px, 100%);
+  margin: 0 0 18px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background:
+    linear-gradient(140deg, rgba(255, 210, 51, 0.18), rgba(255, 255, 255, 0.08)),
+    rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 36px rgba(6, 32, 18, 0.2);
+}
+
+.hero-pix-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.hero-pix-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.hero-pix-card strong {
+  display: block;
+  font-size: clamp(1.5rem, 4vw, 2.1rem);
+  color: white;
+}
+
+.hero-pix-card p {
+  margin: 8px 0 0 !important;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.98rem !important;
+}
+
+.hero-pix-button {
+  white-space: nowrap;
+}
+
 .hero-story-card {
   width: min(520px, 100%);
   margin-top: 20px;
@@ -1314,6 +1358,15 @@ footer {
 
   .hero-story-pills {
     flex-direction: column;
+  }
+
+  .hero-pix-copy {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero-pix-button {
+    width: 100%;
   }
 
   .hero-story-card {

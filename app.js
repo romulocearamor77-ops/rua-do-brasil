@@ -67,6 +67,7 @@ const adminPassword = document.querySelector("#adminPassword");
 const loginMessage = document.querySelector("#loginMessage");
 const logoutButton = document.querySelector("#logoutButton");
 const nextMatchCountdown = document.querySelector("#nextMatchCountdown");
+const copyPixButton = document.querySelector("#copyPixButton");
 
 let gallery = [];
 let quotas = [];
@@ -1684,6 +1685,25 @@ function createId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+async function copyPixKey() {
+  const pixKey = "85992576424";
+
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(pixKey);
+      copyPixButton.textContent = "PIX copiado";
+      window.setTimeout(() => {
+        copyPixButton.textContent = "Copiar PIX";
+      }, 1800);
+      return;
+    }
+  } catch {
+    // Fallback abaixo.
+  }
+
+  window.prompt("Copie a chave PIX:", pixKey);
+}
+
 function defaultResults() {
   return Object.fromEntries(worldCupMatches.map((match) => [match.id, { homeScore: "", awayScore: "" }]));
 }
@@ -3267,6 +3287,10 @@ fullScheduleStageFilter.addEventListener("change", () => {
 
 fullScheduleSearch.addEventListener("input", () => {
   renderFullSchedule();
+});
+
+copyPixButton.addEventListener("click", () => {
+  copyPixKey();
 });
 
 applyAccessMode();
