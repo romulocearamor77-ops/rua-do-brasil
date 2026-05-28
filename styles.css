@@ -533,6 +533,8 @@ main {
   padding: 20px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .schedule-modal-backdrop {
@@ -554,6 +556,9 @@ main {
   border-radius: 24px;
   background: #f8fbf4;
   box-shadow: 0 26px 70px rgba(0, 0, 0, 0.28);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .schedule-modal-header {
@@ -637,6 +642,9 @@ main {
   overflow: auto;
   border: 0;
   border-radius: 0;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .schedule-table-wrap table {
@@ -1057,19 +1065,20 @@ footer {
   }
 
   .schedule-modal {
+    display: block;
     padding: 10px;
-    place-items: start center;
-    align-content: start;
   }
 
   .schedule-modal-panel {
     width: 100%;
     max-height: none;
-    min-height: calc(100vh - 20px);
+    min-height: calc(100dvh - 20px);
     padding: 16px;
     border-radius: 18px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
   }
 
   .schedule-modal-header {
@@ -1162,6 +1171,15 @@ footer {
 
   .schedule-table-wrap table {
     min-width: 0;
+  }
+
+  .schedule-embed-shell {
+    display: block;
+    overflow: visible;
+  }
+
+  .schedule-embed-fallback {
+    padding-bottom: 24px;
   }
 
   thead {
