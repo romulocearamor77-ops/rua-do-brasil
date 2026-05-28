@@ -40,6 +40,7 @@ const betMatchList = document.querySelector("#betMatchList");
 const resultsForm = document.querySelector("#resultsForm");
 const resultsList = document.querySelector("#resultsList");
 const rankingRows = document.querySelector("#rankingRows");
+const rankingPodium = document.querySelector("#rankingPodium");
 const betAdminRows = document.querySelector("#betAdminRows");
 
 const quotaForm = document.querySelector("#quotaForm");
@@ -56,6 +57,8 @@ const expenseDescription = document.querySelector("#expenseDescription");
 const expenseReceipt = document.querySelector("#expenseReceipt");
 const expenseRows = document.querySelector("#expenseRows");
 const financeSummary = document.querySelector("#financeSummary");
+const expenseCategoryBars = document.querySelector("#expenseCategoryBars");
+const financeInsights = document.querySelector("#financeInsights");
 const loginScreen = document.querySelector("#loginScreen");
 const visitorAccess = document.querySelector("#visitorAccess");
 const adminAccess = document.querySelector("#adminAccess");
@@ -63,6 +66,7 @@ const adminLoginForm = document.querySelector("#adminLoginForm");
 const adminPassword = document.querySelector("#adminPassword");
 const loginMessage = document.querySelector("#loginMessage");
 const logoutButton = document.querySelector("#logoutButton");
+const nextMatchCountdown = document.querySelector("#nextMatchCountdown");
 
 let gallery = [];
 let quotas = [];
@@ -2140,6 +2144,59 @@ function buildRanking() {
     ));
 }
 
+function buildExpenseCategoryTotals() {
+  return expenses.reduce((accumulator, item) => {
+    const key = item.category || "Outros";
+    accumulator[key] = (accumulator[key] || 0) + Number(item.value || 0);
+    return accumulator;
+  }, {});
+}
+
+function formatRelativeCountdown(targetDate) {
+  const now = new Date();
+  const diff = targetDate.getTime() - now.getTime();
+  if (diff <= 0) {
+    return "Hoje e dia de jogo";
+  }
+
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+
+  if (days > 0) {
+    return `${days}d ${hours}h para a bola rolar`;
+  }
+  if (hours > 0) {
+    return `${hours}h ${minutes}min para a bola rolar`;
+  }
+  return `${minutes}min para a bola rolar`;
+}
+
+function updateNextMatchCountdown() {
+  const now = new Date();
+  const upcoming = worldCupMatches
+    .map((match) => {
+      const kickoff = new Date(`${match.date}T${match.time}:00-03:00`);
+      return { ...match, kickoff };
+    })
+    .find((match) => match.kickoff.getTime() > now.getTime());
+
+  if (!upcoming) {
+    nextMatchCountdown.innerHTML = `
+      <span>Contagem para o proximo jogo do Brasil</span>
+      <strong>Fase de grupos encerrada</strong>
+      <p>Agora o mural segue guardando as memorias, os palpites e a prestacao de contas da rua.</p>
+    `;
+    return;
+  }
+
+  nextMatchCountdown.innerHTML = `
+    <span>Contagem para o proximo jogo do Brasil</span>
+    <strong>${upcoming.homeTeam} x ${upcoming.awayTeam}</strong>
+    <p>${upcoming.weekday}, ${upcoming.displayDate} as ${upcoming.time} - ${formatRelativeCountdown(upcoming.kickoff)}</p>
+  `;
+}
+
 function renderPoolStats() {
   const ranking = buildRanking();
   const exactTotal = ranking.reduce((total, item) => total + item.exactHits, 0);
@@ -2149,6 +2206,30 @@ function renderPoolStats() {
     <div class="pool-mini-stat"><span>Lider atual</span><strong>${ranking[0]?.name || "Aguardando"}</strong></div>
     <div class="pool-mini-stat"><span>Placares exatos</span><strong>${exactTotal}</strong></div>
   `;
+}
+
+function renderRankingPodium(ranking) {
+  rankingPodium.innerHTML = "";
+
+  if (!ranking.length) {
+    rankingPodium.innerHTML = '<div class="empty-state">O podio aparece assim que os moradores comecarem a palpitar.</div>';
+    return;
+  }
+
+  const podiumLabels = ["Lider", "2o lugar", "3o lugar"];
+  const podiumEmblems = ["Ouro", "Prata", "Bronze"];
+
+  ranking.slice(0, 3).forEach((entry, index) => {
+    const card = document.createElement("article");
+    card.className = `podium-card podium-${index + 1}`;
+    card.innerHTML = `
+      <span>${podiumLabels[index]}</span>
+      <strong>${entry.name}</strong>
+      <p>${entry.points} pts • ${entry.exactHits} placares exatos</p>
+      <b>${podiumEmblems[index]}</b>
+    `;
+    rankingPodium.append(card);
+  });
 }
 
 function renderBetForm() {
@@ -2210,6 +2291,7 @@ function renderResultsForm() {
 function renderRanking() {
   rankingRows.innerHTML = "";
   const ranking = buildRanking();
+  renderRankingPodium(ranking);
 
   if (!ranking.length) {
     rankingRows.innerHTML = '<tr><td colspan="4">Ainda nao ha palpites cadastrados. O primeiro morador a palpitar ja estreia na lideranca.</td></tr>';
@@ -2218,8 +2300,10 @@ function renderRanking() {
 
   ranking.forEach((entry, index) => {
     const row = document.createElement("tr");
+    row.className = index < 3 ? `ranking-row ranking-row-${index + 1}` : "ranking-row";
+    const badge = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}`;
     row.innerHTML = `
-      <td data-label="Posicao">${index + 1}</td>
+      <td data-label="Posicao">${badge}</td>
       <td data-label="Nome"></td>
       <td data-label="Pontos">${entry.points}</td>
       <td data-label="Placares exatos">${entry.exactHits}</td>
@@ -2473,6 +2557,51 @@ function renderExpenses() {
     <div class="summary-card"><span>Total arrecadado</span><strong>${money(collectedTotal)}</strong></div>
     <div class="summary-card"><span>Total gasto</span><strong>${money(spentTotal)}</strong></div>
     <div class="summary-card ${balance >= 0 ? "balance-positive" : "balance-negative"}"><span>Saldo atual</span><strong>${money(balance)}</strong></div>
+  `;
+
+  const categoryTotals = buildExpenseCategoryTotals();
+  const highestCategory = Object.entries(categoryTotals).sort((left, right) => right[1] - left[1])[0];
+  const spentPercent = collectedTotal > 0 ? Math.min((spentTotal / collectedTotal) * 100, 100) : 0;
+
+  expenseCategoryBars.innerHTML = "";
+  if (Object.keys(categoryTotals).length) {
+    const maxValue = Math.max(...Object.values(categoryTotals));
+    Object.entries(categoryTotals)
+      .sort((left, right) => right[1] - left[1])
+      .forEach(([category, value]) => {
+        const item = document.createElement("div");
+        item.className = "finance-category-item";
+        item.innerHTML = `
+          <div class="finance-category-head">
+            <strong>${category}</strong>
+            <span>${money(value)}</span>
+          </div>
+          <div class="finance-category-track">
+            <div class="finance-category-fill" style="width:${maxValue ? (value / maxValue) * 100 : 0}%"></div>
+          </div>
+        `;
+        expenseCategoryBars.append(item);
+      });
+  } else {
+    expenseCategoryBars.innerHTML = '<div class="empty-state">As categorias vao aparecer aqui assim que a primeira despesa for cadastrada.</div>';
+  }
+
+  financeInsights.innerHTML = `
+    <div class="finance-insight-card">
+      <span>Categoria com maior gasto</span>
+      <strong>${highestCategory ? highestCategory[0] : "Aguardando despesas"}</strong>
+      <p>${highestCategory ? money(highestCategory[1]) : "Nenhuma despesa registrada ainda."}</p>
+    </div>
+    <div class="finance-insight-card">
+      <span>Uso da arrecadacao</span>
+      <strong>${spentPercent.toFixed(0)}%</strong>
+      <p>${collectedTotal > 0 ? `${money(spentTotal)} de ${money(collectedTotal)} ja foram usados.` : "Cadastre cotas pagas para acompanhar esse percentual."}</p>
+    </div>
+    <div class="finance-insight-card">
+      <span>Registros da prestacao</span>
+      <strong>${expenses.length}</strong>
+      <p>${expenses.length ? "Lancamentos publicados no livro-caixa da decoracao." : "Nenhum gasto registrado ate o momento."}</p>
+    </div>
   `;
 
   if (!expenses.length) {
@@ -3144,6 +3273,8 @@ applyAccessMode();
 expenseDate.valueAsDate = new Date();
 populateScheduleStageFilter();
 renderFullSchedule();
+updateNextMatchCountdown();
+window.setInterval(updateNextMatchCountdown, 60000);
 renderMatches();
 renderPool();
 loadData();
