@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 112" role="img" aria-labelledby="title desc">
+  <title id="title">Bandeira do Brasil</title>
+  <desc id="desc">Bandeira verde com losango amarelo e circulo azul</desc>
+  <rect width="160" height="112" rx="12" fill="#1C8A42"/>
+  <polygon points="80,16 140,56 80,96 20,56" fill="#FFD246"/>
+  <circle cx="80" cy="56" r="24" fill="#174EA6"/>
+  <path d="M48 58c9-11 26-18 41-18 14 0 27 4 39 12" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="63" cy="52" r="2.3" fill="#fff"/>
+  <circle cx="70" cy="47" r="1.8" fill="#fff"/>
+  <circle cx="78" cy="45" r="1.7" fill="#fff"/>
+  <circle cx="87" cy="45" r="1.5" fill="#fff"/>
+  <circle cx="96" cy="48" r="1.8" fill="#fff"/>
+  <circle cx="104" cy="53" r="2" fill="#fff"/>
+</svg>

@@ -201,6 +201,39 @@ button {
   z-index: 1;
 }
 
+.hero-emblems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 0 0 18px;
+}
+
+.hero-emblem-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 14px 28px rgba(6, 28, 18, 0.14);
+  backdrop-filter: blur(10px);
+}
+
+.hero-emblem-card img {
+  display: block;
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.18));
+}
+
+.hero-emblem-card span {
+  color: white;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
 .hero-story-pills {
   display: flex;
   flex-wrap: wrap;
@@ -1373,6 +1406,14 @@ footer {
 
   .hero-story-pills {
     flex-direction: column;
+  }
+
+  .hero-emblems {
+    flex-direction: column;
+  }
+
+  .hero-emblem-card {
+    width: 100%;
   }
 
   .hero-pix-copy {

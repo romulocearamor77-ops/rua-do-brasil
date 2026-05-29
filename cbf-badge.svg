@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 190" role="img" aria-labelledby="title desc">
+  <title id="title">Escudo estilizado da CBF</title>
+  <desc id="desc">Escudo amarelo com cruz azul e letras CBF</desc>
+  <path d="M80 8 143 35v56c0 46-28 76-63 91C45 167 17 137 17 91V35Z" fill="#FFD246" stroke="#fff6cf" stroke-width="6"/>
+  <path d="M80 24 129 45v43c0 35-21 59-49 72-28-13-49-37-49-72V45Z" fill="#1C8A42"/>
+  <path d="M66 32h28v126H66z" fill="#174EA6"/>
+  <path d="M31 67h98v26H31z" fill="#174EA6"/>
+  <path d="M45 80 80 45l35 35-35 35Z" fill="none" stroke="#fff" stroke-width="8" opacity=".95"/>
+  <text x="80" y="85" text-anchor="middle" font-family="Trebuchet MS, Segoe UI, sans-serif" font-size="24" font-weight="700" fill="#fff">CBF</text>
+  <g fill="#fff">
+    <circle cx="80" cy="19" r="5"/>
+    <circle cx="96" cy="22" r="4"/>
+    <circle cx="64" cy="22" r="4"/>
+    <circle cx="108" cy="29" r="3.5"/>
+    <circle cx="52" cy="29" r="3.5"/>
+  </g>
+</svg>
