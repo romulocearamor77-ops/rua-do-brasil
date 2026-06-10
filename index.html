@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Rua do Brasil - Memorias da Copa</title>
-    <link rel="stylesheet" href="styles.css?v=13">
+    <link rel="stylesheet" href="styles.css?v=14">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
       window.RUA_BRASIL_CONFIG = {
@@ -122,7 +122,7 @@
           <p class="eyebrow">Bolao da rua</p>
           <h2>Quem conhece mais a Selecao?</h2>
           <p>
-            Cada morador pode registrar os palpites dos tres jogos do Brasil. O ranking destaca quem acertar mais placares.
+            Cada morador pode registrar os palpites de todos os jogos da Copa. O ranking destaca quem acertar mais placares.
           </p>
           <div class="pool-callout-stats" id="poolStats"></div>
           <a class="hero-button" href="#bolao">Fazer meus palpites</a>
@@ -173,9 +173,9 @@
       <section class="section-shell pool-section" id="bolao">
         <div class="section-heading">
           <p class="eyebrow">Brincadeira da vizinhanca</p>
-          <h2>Bolao dos jogos do Brasil</h2>
+          <h2>Bolao de todos os jogos da Copa</h2>
           <p class="section-note">
-            Visitantes tambem podem palpitar. A pontuacao e de 3 pontos por acertar vitoria ou empate e 6 pontos por acertar o placar exato.
+            Visitantes tambem podem palpitar em todos os jogos da Copa. A pontuacao e de 3 pontos por acertar vitoria ou empate e 6 pontos por acertar o placar exato.
           </p>
         </div>
 
@@ -183,6 +183,8 @@
           <div class="panel pool-panel">
             <h3>Enviar palpites</h3>
             <form class="bet-form" id="betForm">
+              <p class="form-note" id="betFormMode">Preencha seus palpites para todos os jogos da Copa e salve seu nome no ranking da rua.</p>
+
               <label>
                 Seu nome
                 <input id="bettorName" type="text" maxlength="80" placeholder="Ex.: Romulo" required>
@@ -194,7 +196,10 @@
                 Pontuacao do ranking: 3 pontos por acertar vitoria ou empate e 6 pontos por acertar o placar exato.
               </p>
 
-              <button type="submit">Salvar meus palpites</button>
+              <div class="form-actions">
+                <button id="betSubmitButton" type="submit">Salvar meus palpites</button>
+                <button class="secondary-button" id="cancelBetEdit" type="button" hidden>Cancelar edicao</button>
+              </div>
             </form>
           </div>
 
@@ -509,6 +514,6 @@
       Feito para guardar a memoria da rua, organizar a torcida e prestar contas com transparencia.
     </footer>
 
-    <script src="app.js?v=20"></script>
+    <script src="app.js?v=21"></script>
   </body>
 </html>

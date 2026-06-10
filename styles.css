@@ -888,6 +888,47 @@ main {
   gap: 14px;
 }
 
+.pool-stage-group {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 14px 26px rgba(18, 36, 26, 0.08);
+  overflow: hidden;
+}
+
+.pool-stage-group summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 18px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--deep-green);
+  background: linear-gradient(180deg, rgba(237, 244, 232, 0.92), rgba(247, 251, 245, 0.92));
+}
+
+.pool-stage-group summary::-webkit-details-marker {
+  display: none;
+}
+
+.pool-stage-title {
+  font-weight: 800;
+}
+
+.pool-stage-count {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.bet-stage-group-grid,
+.result-stage-group-grid {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
 .bet-card,
 .result-card {
   border: 1px solid var(--line);
@@ -914,6 +955,12 @@ main {
   margin: 0;
   color: var(--muted);
   font-size: 0.92rem;
+}
+
+.bet-stage-meta {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .score-fields {
@@ -947,6 +994,14 @@ main {
   gap: 6px;
   color: var(--muted);
   font-size: 0.92rem;
+}
+
+.bet-admin-summary strong {
+  color: var(--deep-green);
+}
+
+.bet-admin-more {
+  font-style: italic;
 }
 
 .schedule-modal {
@@ -1700,6 +1755,11 @@ footer {
     height: 48px;
     border-radius: 14px;
     font-size: 1.2rem;
+  }
+
+  .pool-stage-group summary {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .score-fields {

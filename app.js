@@ -35,7 +35,10 @@ const fullScheduleVenueCount = document.querySelector("#fullScheduleVenueCount")
 const matchGrid = document.querySelector("#matchGrid");
 const poolStats = document.querySelector("#poolStats");
 const betForm = document.querySelector("#betForm");
+const betFormMode = document.querySelector("#betFormMode");
 const bettorName = document.querySelector("#bettorName");
+const betSubmitButton = document.querySelector("#betSubmitButton");
+const cancelBetEdit = document.querySelector("#cancelBetEdit");
 const betMatchList = document.querySelector("#betMatchList");
 const resultsForm = document.querySelector("#resultsForm");
 const resultsList = document.querySelector("#resultsList");
@@ -78,6 +81,7 @@ let quotas = [];
 let expenses = [];
 let bets = [];
 let officialResults = {};
+let editingBetId = null;
 let editingExpenseId = null;
 let accessMode = localStorage.getItem(accessKey) === "admin" ? "admin" : "";
 const scheduleKey = "ruaBrasilTabelaCompleta";
@@ -1481,6 +1485,18 @@ const worldCupMatches = [
   }
 ];
 
+const poolStageOrder = [
+  "Fase de grupos",
+  "Primeira fase eliminatoria",
+  "Oitavas de final",
+  "Quartas de final",
+  "Semifinal",
+  "Disputa de terceiro lugar",
+  "Final"
+];
+
+const poolMatches = buildPoolMatches();
+
 officialResults = defaultResults();
 
 function scheduleGroupList(groups = "") {
@@ -1621,6 +1637,47 @@ function localizedScheduleData() {
   return fullScheduleData.map(localizeScheduleMatch);
 }
 
+function capitalizeLabel(value = "") {
+  if (!value) {
+    return "";
+  }
+
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function buildPoolMatches() {
+  return localizedScheduleData().map((match) => ({
+    id: `pool-${match.matchNumber}`,
+    matchNumber: match.matchNumber,
+    round: `Jogo #${match.matchNumber}`,
+    stage: match.stage,
+    date: match.date,
+    displayDate: match.displayDate,
+    weekday: capitalizeLabel(match.weekday || ""),
+    time: match.displayTime,
+    venue: `${match.stadium} - ${match.city}`,
+    homeTeam: match.homeTeam,
+    awayTeam: match.awayTeam
+  }));
+}
+
+function groupPoolMatchesByStage(matches) {
+  const map = new Map();
+
+  matches.forEach((match) => {
+    if (!map.has(match.stage)) {
+      map.set(match.stage, []);
+    }
+    map.get(match.stage).push(match);
+  });
+
+  return [...map.entries()]
+    .sort((left, right) => (
+      poolStageOrder.indexOf(left[0]) - poolStageOrder.indexOf(right[0])
+    ))
+    .map(([stage, stageMatches]) => ({ stage, matches: stageMatches }));
+}
+
 function loadScheduleMemory() {
   const savedVersion = localStorage.getItem(scheduleVersionKey);
   const savedSchedule = readStorage(scheduleKey);
@@ -1710,7 +1767,7 @@ async function copyPixKey() {
 }
 
 function defaultResults() {
-  return Object.fromEntries(worldCupMatches.map((match) => [match.id, { homeScore: "", awayScore: "" }]));
+  return Object.fromEntries(poolMatches.map((match) => [match.id, { homeScore: "", awayScore: "" }]));
 }
 
 function normalizeName(value = "") {
@@ -2308,7 +2365,7 @@ function scorePrediction(prediction, matchId) {
 function buildRanking() {
   return bets
     .map((bet) => {
-      const totals = worldCupMatches.reduce((accumulator, match) => {
+      const totals = poolMatches.reduce((accumulator, match) => {
         const prediction = bet.predictions.find((item) => item.matchId === match.id);
         const score = scorePrediction(prediction, match.id);
         return {
@@ -2384,12 +2441,11 @@ function updateNextMatchCountdown() {
 
 function renderPoolStats() {
   const ranking = buildRanking();
-  const exactTotal = ranking.reduce((total, item) => total + item.exactHits, 0);
 
   poolStats.innerHTML = `
     <div class="pool-mini-stat"><span>Palpites enviados</span><strong>${bets.length}</strong></div>
     <div class="pool-mini-stat"><span>Lider atual</span><strong>${ranking[0]?.name || "Aguardando"}</strong></div>
-    <div class="pool-mini-stat"><span>Placares exatos</span><strong>${exactTotal}</strong></div>
+    <div class="pool-mini-stat"><span>Jogos no bolao</span><strong>${poolMatches.length}</strong></div>
   `;
 }
 
@@ -2417,59 +2473,131 @@ function renderRankingPodium(ranking) {
   });
 }
 
+function resetBetForm() {
+  editingBetId = null;
+  betForm.reset();
+  betFormMode.textContent = `Preencha seus palpites para todos os ${poolMatches.length} jogos da Copa e salve seu nome no ranking da rua.`;
+  betSubmitButton.textContent = "Salvar meus palpites";
+  cancelBetEdit.hidden = true;
+}
+
+function startBetEdit(bet, shouldScroll = true) {
+  editingBetId = bet.id;
+  bettorName.value = bet.name;
+
+  poolMatches.forEach((match) => {
+    const prediction = bet.predictions.find((item) => item.matchId === match.id);
+    const homeInput = betForm.querySelector(`[data-match-id="${match.id}"][data-side="homeScore"]`);
+    const awayInput = betForm.querySelector(`[data-match-id="${match.id}"][data-side="awayScore"]`);
+
+    if (homeInput) {
+      homeInput.value = prediction?.homeScore ?? "";
+    }
+    if (awayInput) {
+      awayInput.value = prediction?.awayScore ?? "";
+    }
+  });
+
+  betFormMode.textContent = `Editando os palpites de ${bet.name} em todos os jogos da Copa.`;
+  betSubmitButton.textContent = "Salvar alteracoes do palpite";
+  cancelBetEdit.hidden = false;
+  if (shouldScroll) {
+    betForm.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+function createPoolStageGroup(stage, matches, cardClassName, cardBuilder, openByDefault = false) {
+  const group = document.createElement("details");
+  group.className = "pool-stage-group";
+  group.open = openByDefault;
+  group.innerHTML = `
+    <summary>
+      <span class="pool-stage-title">${stage}</span>
+      <span class="pool-stage-count">${matches.length} jogos</span>
+    </summary>
+  `;
+
+  const content = document.createElement("div");
+  content.className = `${cardClassName}-group-grid`;
+  matches.forEach((match) => content.append(cardBuilder(match)));
+  group.append(content);
+  return group;
+}
+
 function renderBetForm() {
   betMatchList.innerHTML = "";
 
-  worldCupMatches.forEach((match) => {
-    const card = document.createElement("div");
-    card.className = "bet-card";
-    card.innerHTML = `
-      <div class="bet-card-header">
-        <div>
-          <strong>${match.homeTeam} x ${match.awayTeam}</strong>
-          <p class="bet-date">${match.weekday}, ${match.displayDate} - ${match.time}</p>
-        </div>
-        <span class="match-round">${match.round}</span>
-      </div>
-      <div class="score-fields">
-        <label>
-          ${match.homeTeam}
-          <input type="number" min="0" required data-match-id="${match.id}" data-side="homeScore" placeholder="0">
-        </label>
-        <span>x</span>
-        <label>
-          ${match.awayTeam}
-          <input type="number" min="0" required data-match-id="${match.id}" data-side="awayScore" placeholder="0">
-        </label>
-      </div>
-    `;
-    betMatchList.append(card);
+  groupPoolMatchesByStage(poolMatches).forEach(({ stage, matches }, index) => {
+    const group = createPoolStageGroup(
+      stage,
+      matches,
+      "bet-stage",
+      (match) => {
+        const card = document.createElement("div");
+        card.className = "bet-card";
+        card.innerHTML = `
+          <div class="bet-card-header">
+            <div>
+              <strong>${match.homeTeam} x ${match.awayTeam}</strong>
+              <p class="bet-date">${match.weekday}, ${match.displayDate} - ${match.time}</p>
+            </div>
+            <span class="match-round">${match.round}</span>
+          </div>
+          <p class="bet-stage-meta">${match.venue}</p>
+          <div class="score-fields">
+            <label>
+              ${match.homeTeam}
+              <input type="number" min="0" data-match-id="${match.id}" data-side="homeScore" placeholder="0">
+            </label>
+            <span>x</span>
+            <label>
+              ${match.awayTeam}
+              <input type="number" min="0" data-match-id="${match.id}" data-side="awayScore" placeholder="0">
+            </label>
+          </div>
+        `;
+        return card;
+      },
+      index === 0
+    );
+
+    betMatchList.append(group);
   });
 }
 
 function renderResultsForm() {
   resultsList.innerHTML = "";
 
-  worldCupMatches.forEach((match) => {
-    const result = officialResults[match.id] || { homeScore: "", awayScore: "" };
-    const card = document.createElement("div");
-    card.className = "result-card";
-    card.innerHTML = `
-      <strong>${match.homeTeam} x ${match.awayTeam}</strong>
-      <p>${match.weekday}, ${match.displayDate} - ${match.time} - ${match.venue}</p>
-      <div class="score-fields">
-        <label>
-          ${match.homeTeam}
-          <input type="number" min="0" data-result-match-id="${match.id}" data-side="homeScore" value="${result.homeScore}">
-        </label>
-        <span>x</span>
-        <label>
-          ${match.awayTeam}
-          <input type="number" min="0" data-result-match-id="${match.id}" data-side="awayScore" value="${result.awayScore}">
-        </label>
-      </div>
-    `;
-    resultsList.append(card);
+  groupPoolMatchesByStage(poolMatches).forEach(({ stage, matches }, index) => {
+    const group = createPoolStageGroup(
+      stage,
+      matches,
+      "result-stage",
+      (match) => {
+        const result = officialResults[match.id] || { homeScore: "", awayScore: "" };
+        const card = document.createElement("div");
+        card.className = "result-card";
+        card.innerHTML = `
+          <strong>${match.homeTeam} x ${match.awayTeam}</strong>
+          <p>${match.weekday}, ${match.displayDate} - ${match.time} - ${match.venue}</p>
+          <div class="score-fields">
+            <label>
+              ${match.homeTeam}
+              <input type="number" min="0" data-result-match-id="${match.id}" data-side="homeScore" value="${result.homeScore}">
+            </label>
+            <span>x</span>
+            <label>
+              ${match.awayTeam}
+              <input type="number" min="0" data-result-match-id="${match.id}" data-side="awayScore" value="${result.awayScore}">
+            </label>
+          </div>
+        `;
+        return card;
+      },
+      index === 0
+    );
+
+    resultsList.append(group);
   });
 }
 
@@ -2510,6 +2638,11 @@ function renderBetAdminTable() {
     .slice()
     .sort((left, right) => left.name.localeCompare(right.name, "pt-BR"))
     .forEach((bet) => {
+      const filledPredictions = bet.predictions.filter((item) => (
+        Number.isInteger(Number(item.homeScore)) &&
+        Number.isInteger(Number(item.awayScore))
+      ));
+      const previewMatches = poolMatches.slice(0, 4);
       const row = document.createElement("tr");
       row.innerHTML = `
         <td data-label="Nome"></td>
@@ -2520,19 +2653,30 @@ function renderBetAdminTable() {
       row.children[0].textContent = bet.name;
 
       const summary = row.querySelector(".bet-admin-summary");
-      worldCupMatches.forEach((match) => {
+      const summaryLead = document.createElement("strong");
+      summaryLead.textContent = `${filledPredictions.length} de ${poolMatches.length} jogos preenchidos`;
+      summary.append(summaryLead);
+
+      previewMatches.forEach((match) => {
         const prediction = bet.predictions.find((item) => item.matchId === match.id);
         const line = document.createElement("span");
         line.textContent = `${match.homeTeam} ${prediction?.homeScore ?? "-"} x ${prediction?.awayScore ?? "-"} ${match.awayTeam}`;
         summary.append(line);
       });
 
+      if (poolMatches.length > previewMatches.length) {
+        const more = document.createElement("span");
+        more.className = "bet-admin-more";
+        more.textContent = `Mais ${poolMatches.length - previewMatches.length} jogos aparecem ao editar.`;
+        summary.append(more);
+      }
+
       const actions = row.querySelector(".row-actions");
       const editButton = document.createElement("button");
       editButton.type = "button";
       editButton.className = "small-danger";
       editButton.textContent = "Editar";
-      editButton.addEventListener("click", () => editBetEntry(bet));
+      editButton.addEventListener("click", () => startBetEdit(bet));
       actions.append(editButton);
 
       betAdminRows.append(row);
@@ -2545,6 +2689,16 @@ function renderPool() {
   renderResultsForm();
   renderRanking();
   renderBetAdminTable();
+
+  if (editingBetId) {
+    const currentBet = bets.find((entry) => entry.id === editingBetId);
+    if (currentBet) {
+      startBetEdit(currentBet, false);
+      return;
+    }
+  }
+
+  resetBetForm();
 }
 
 function renderGallery() {
@@ -2890,40 +3044,82 @@ async function persistPoolData(successMessage, fallbackKey, fallbackValue, error
 async function saveBet() {
   const name = bettorName.value.trim();
   const normalizedName = normalizeName(name);
-  const predictions = worldCupMatches.map((match) => {
+  const predictions = [];
+
+  if (!name) {
+    showMessage("Digite seu nome para salvar o bolao.", true);
+    bettorName.focus();
+    return;
+  }
+
+  for (const match of poolMatches) {
     const homeInput = betForm.querySelector(`[data-match-id="${match.id}"][data-side="homeScore"]`);
     const awayInput = betForm.querySelector(`[data-match-id="${match.id}"][data-side="awayScore"]`);
-    return {
-      matchId: match.id,
-      homeScore: Number(homeInput.value),
-      awayScore: Number(awayInput.value)
-    };
-  });
+    const homeValue = homeInput?.value ?? "";
+    const awayValue = awayInput?.value ?? "";
 
-  bets = [
-    {
-      id: createId(),
-      name,
-      normalizedName,
-      predictions,
-      createdAt: new Date().toISOString()
-    },
-    ...bets.filter((entry) => entry.normalizedName !== normalizedName)
-  ];
+    if (homeValue === "" || awayValue === "") {
+      homeInput?.closest(".pool-stage-group")?.setAttribute("open", "open");
+      awayInput?.closest(".pool-stage-group")?.setAttribute("open", "open");
+      showMessage(`Preencha o placar de ${match.homeTeam} x ${match.awayTeam}.`, true);
+      homeInput?.focus();
+      return;
+    }
+
+    const homeScore = Number(homeValue);
+    const awayScore = Number(awayValue);
+
+    if (!Number.isInteger(homeScore) || homeScore < 0 || !Number.isInteger(awayScore) || awayScore < 0) {
+      homeInput?.closest(".pool-stage-group")?.setAttribute("open", "open");
+      awayInput?.closest(".pool-stage-group")?.setAttribute("open", "open");
+      showMessage(`Use apenas numeros inteiros iguais ou maiores que zero em ${match.homeTeam} x ${match.awayTeam}.`, true);
+      homeInput?.focus();
+      return;
+    }
+
+    predictions.push({
+      matchId: match.id,
+      homeScore,
+      awayScore
+    });
+  }
+
+  const savedEntry = {
+    id: editingBetId || createId(),
+    name,
+    normalizedName,
+    predictions,
+    createdAt: bets.find((entry) => entry.id === editingBetId)?.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  if (editingBetId) {
+    bets = [
+      savedEntry,
+      ...bets.filter((entry) => entry.id !== editingBetId && entry.normalizedName !== normalizedName)
+    ];
+  } else {
+    bets = [
+      savedEntry,
+      ...bets.filter((entry) => entry.normalizedName !== normalizedName)
+    ];
+  }
 
   await persistPoolData(
-    "Palpite salvo com sucesso no bolao.",
+    editingBetId ? "Palpite atualizado com sucesso no bolao." : "Palpite salvo com sucesso no bolao.",
     betKey,
     bets,
-    "Nao foi possivel salvar no banco compartilhado. O palpite ficou salvo apenas neste navegador."
+    editingBetId
+      ? "Nao foi possivel salvar a edicao no banco compartilhado. O palpite ficou salvo apenas neste navegador."
+      : "Nao foi possivel salvar no banco compartilhado. O palpite ficou salvo apenas neste navegador."
   );
 
-  betForm.reset();
+  resetBetForm();
   renderPool();
 }
 
 async function saveOfficialResults() {
-  officialResults = worldCupMatches.reduce((accumulator, match) => {
+  officialResults = poolMatches.reduce((accumulator, match) => {
     const homeInput = resultsForm.querySelector(`[data-result-match-id="${match.id}"][data-side="homeScore"]`);
     const awayInput = resultsForm.querySelector(`[data-result-match-id="${match.id}"][data-side="awayScore"]`);
 
@@ -2947,61 +3143,7 @@ async function saveOfficialResults() {
 }
 
 async function editBetEntry(bet) {
-  const updatedPredictions = [];
-
-  for (const match of worldCupMatches) {
-    const currentPrediction = bet.predictions.find((item) => item.matchId === match.id) || {
-      homeScore: 0,
-      awayScore: 0
-    };
-
-    const nextHomeValue = prompt(
-      `Edite o palpite de ${bet.name} para ${match.homeTeam} x ${match.awayTeam}.\nGols de ${match.homeTeam}:`,
-      String(currentPrediction.homeScore)
-    );
-
-    if (nextHomeValue === null) {
-      return;
-    }
-
-    const nextAwayValue = prompt(
-      `Edite o palpite de ${bet.name} para ${match.homeTeam} x ${match.awayTeam}.\nGols de ${match.awayTeam}:`,
-      String(currentPrediction.awayScore)
-    );
-
-    if (nextAwayValue === null) {
-      return;
-    }
-
-    const homeScore = Number(nextHomeValue);
-    const awayScore = Number(nextAwayValue);
-
-    if (!Number.isInteger(homeScore) || homeScore < 0 || !Number.isInteger(awayScore) || awayScore < 0) {
-      showMessage("Os placares precisam ser numeros inteiros iguais ou maiores que zero.", true);
-      return;
-    }
-
-    updatedPredictions.push({
-      matchId: match.id,
-      homeScore,
-      awayScore
-    });
-  }
-
-  bets = bets.map((entry) => (
-    entry.id === bet.id
-      ? { ...entry, predictions: updatedPredictions, updatedAt: new Date().toISOString() }
-      : entry
-  ));
-
-  await persistPoolData(
-    "Palpite atualizado com sucesso.",
-    betKey,
-    bets,
-    "Nao foi possivel salvar a edicao no banco compartilhado. Alteracao salva apenas neste navegador."
-  );
-
-  renderPool();
+  startBetEdit(bet);
 }
 
 async function saveGalleryLink(url) {
@@ -3490,6 +3632,10 @@ expenseForm.addEventListener("submit", async (event) => {
   await saveExpense();
 });
 
+cancelBetEdit.addEventListener("click", () => {
+  resetBetForm();
+});
+
 cancelExpenseEdit.addEventListener("click", () => {
   resetExpenseForm();
 });
@@ -3555,6 +3701,7 @@ copyPixButton.addEventListener("click", () => {
 });
 
 applyAccessMode();
+resetBetForm();
 resetExpenseForm();
 populateScheduleStageFilter();
 renderFullSchedule();
