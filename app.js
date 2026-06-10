@@ -55,6 +55,9 @@ const expenseCategory = document.querySelector("#expenseCategory");
 const expenseValue = document.querySelector("#expenseValue");
 const expenseDescription = document.querySelector("#expenseDescription");
 const expenseReceipt = document.querySelector("#expenseReceipt");
+const expenseFormMode = document.querySelector("#expenseFormMode");
+const expenseSubmitButton = document.querySelector("#expenseSubmitButton");
+const cancelExpenseEdit = document.querySelector("#cancelExpenseEdit");
 const expenseRows = document.querySelector("#expenseRows");
 const financeSummary = document.querySelector("#financeSummary");
 const expenseCategoryBars = document.querySelector("#expenseCategoryBars");
@@ -75,6 +78,7 @@ let quotas = [];
 let expenses = [];
 let bets = [];
 let officialResults = {};
+let editingExpenseId = null;
 let accessMode = localStorage.getItem(accessKey) === "admin" ? "admin" : "";
 const scheduleKey = "ruaBrasilTabelaCompleta";
 const scheduleVersionKey = "ruaBrasilTabelaCompletaVersao";
@@ -2703,6 +2707,32 @@ function formatDate(dateString) {
   return `${day}/${month}/${year}`;
 }
 
+function getExpenseDate(item) {
+  return item.expense_date || item.date || "";
+}
+
+function resetExpenseForm() {
+  editingExpenseId = null;
+  expenseForm.reset();
+  expenseDate.valueAsDate = new Date();
+  expenseFormMode.textContent = "Use este formulario para adicionar um novo gasto da decoracao.";
+  expenseSubmitButton.textContent = "Adicionar despesa";
+  cancelExpenseEdit.hidden = true;
+}
+
+function startExpenseEdit(item) {
+  editingExpenseId = item.id;
+  expenseDate.value = getExpenseDate(item);
+  expenseCategory.value = item.category || "";
+  expenseValue.value = item.value ?? "";
+  expenseDescription.value = item.description || "";
+  expenseReceipt.value = item.receipt_url || "";
+  expenseFormMode.textContent = `Editando a despesa de ${formatDate(getExpenseDate(item))} na categoria ${item.category || "Outros"}.`;
+  expenseSubmitButton.textContent = "Salvar alteracoes";
+  cancelExpenseEdit.hidden = false;
+  expenseForm.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
 function renderExpenses() {
   expenseRows.innerHTML = "";
 
@@ -2796,12 +2826,23 @@ function renderExpenses() {
 
     const actions = row.querySelector(".row-actions");
     if (isAdmin()) {
+      const edit = document.createElement("button");
+      edit.type = "button";
+      edit.className = "secondary-button";
+      edit.textContent = "Editar";
+      edit.addEventListener("click", () => startExpenseEdit(item));
+
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "small-danger";
       remove.textContent = "Remover";
-      remove.addEventListener("click", () => removeExpense(item));
-      actions.append(remove);
+      remove.addEventListener("click", () => {
+        if (editingExpenseId === item.id) {
+          resetExpenseForm();
+        }
+        removeExpense(item);
+      });
+      actions.append(edit, remove);
     } else {
       actions.textContent = "Somente administrador";
     }
@@ -3223,13 +3264,18 @@ async function removeQuota(item) {
 
 async function saveExpense() {
   const item = {
-    id: createId(),
+    id: editingExpenseId || createId(),
     date: expenseDate.value,
     category: expenseCategory.value,
     description: expenseDescription.value.trim(),
     receipt_url: expenseReceipt.value.trim(),
     value: Number(expenseValue.value)
   };
+
+  if (editingExpenseId) {
+    await updateExpense(item);
+    return;
+  }
 
   if (!hasSupabase) {
     expenses.unshift(item);
@@ -3244,8 +3290,7 @@ async function saveExpense() {
       saveStorage(expenseKey, expenses);
       showMessage("Nao foi possivel salvar no banco. Despesa salva apenas neste navegador.", true);
     }
-    expenseForm.reset();
-    expenseDate.valueAsDate = new Date();
+    resetExpenseForm();
     renderExpenses();
     return;
   }
@@ -3264,9 +3309,59 @@ async function saveExpense() {
   }
 
   expenses.unshift(data);
-  expenseForm.reset();
-  expenseDate.valueAsDate = new Date();
+  resetExpenseForm();
   showMessage("Despesa salva no banco persistente.");
+  renderExpenses();
+}
+
+async function updateExpense(item) {
+  if (!hasSupabase) {
+    const expenseIndex = expenses.findIndex((entry) => entry.id === item.id);
+    if (expenseIndex === -1) {
+      showMessage("Nao foi possivel localizar a despesa para editar.", true);
+      resetExpenseForm();
+      return;
+    }
+
+    expenses[expenseIndex] = {
+      ...expenses[expenseIndex],
+      ...item,
+      expense_date: item.date
+    };
+
+    try {
+      if (hasJsonBlob) {
+        await saveJsonBlob();
+        showMessage("Despesa atualizada no banco persistente compartilhado.");
+      } else {
+        saveStorage(expenseKey, expenses);
+      }
+    } catch {
+      saveStorage(expenseKey, expenses);
+      showMessage("Nao foi possivel atualizar o banco. Alteracao salva apenas neste navegador.", true);
+    }
+
+    resetExpenseForm();
+    renderExpenses();
+    return;
+  }
+
+  const { data, error } = await db.from("expenses").update({
+    category: item.category,
+    description: item.description,
+    receipt_url: item.receipt_url || null,
+    value: item.value,
+    expense_date: item.date
+  }).eq("id", item.id).select().single();
+
+  if (error) {
+    showMessage("Nao foi possivel atualizar a despesa no banco.", true);
+    return;
+  }
+
+  expenses = expenses.map((entry) => (entry.id === item.id ? data : entry));
+  resetExpenseForm();
+  showMessage("Despesa atualizada no banco persistente.");
   renderExpenses();
 }
 
@@ -3373,6 +3468,10 @@ expenseForm.addEventListener("submit", async (event) => {
   await saveExpense();
 });
 
+cancelExpenseEdit.addEventListener("click", () => {
+  resetExpenseForm();
+});
+
 visitorAccess.addEventListener("click", () => {
   setAccessMode("visitor");
 });
@@ -3434,7 +3533,7 @@ copyPixButton.addEventListener("click", () => {
 });
 
 applyAccessMode();
-expenseDate.valueAsDate = new Date();
+resetExpenseForm();
 populateScheduleStageFilter();
 renderFullSchedule();
 updateNextMatchCountdown();

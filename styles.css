@@ -1102,6 +1102,17 @@ main {
   min-width: 0;
 }
 
+.form-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.form-actions button {
+  min-width: 160px;
+}
+
 label {
   display: grid;
   gap: 7px;
@@ -1210,6 +1221,11 @@ a:focus-visible {
   background: #fff7f7;
   box-shadow: none;
   border: 1px solid rgba(183, 53, 53, 0.25);
+}
+
+.row-actions .secondary-button {
+  min-height: 36px;
+  padding: 8px 10px;
 }
 
 .empty-state {
