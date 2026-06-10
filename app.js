@@ -1744,6 +1744,28 @@ function escapeHtml(value = "") {
   });
 }
 
+function renderFlagBadge(code = "", teamName = "") {
+  const labels = {
+    BR: "Bandeira do Brasil",
+    MA: "Bandeira do Marrocos",
+    HT: "Bandeira do Haiti",
+    SC: "Bandeira da Escocia"
+  };
+
+  const variants = {
+    BR: '<span class="flag-br-diamond"></span><span class="flag-br-circle"></span>',
+    MA: '<span class="flag-ma-star">★</span>',
+    HT: '<span class="flag-ht-badge"></span>',
+    SC: '<span class="flag-sc-cross flag-sc-cross-a"></span><span class="flag-sc-cross flag-sc-cross-b"></span>'
+  };
+
+  const safeTeamName = escapeHtml(teamName || code);
+  const safeLabel = escapeHtml(labels[code] || `Bandeira de ${safeTeamName}`);
+  const innerMarkup = variants[code] || `<span class="flag-fallback">${safeTeamName.slice(0, 2).toUpperCase()}</span>`;
+
+  return `<span class="team-badge team-flag flag-${code.toLowerCase()}" role="img" aria-label="${safeLabel}">${innerMarkup}</span>`;
+}
+
 function scheduleFilterValue() {
   return fullScheduleStageFilter.value || "all";
 }
@@ -2243,12 +2265,12 @@ function renderMatches() {
       </div>
       <div class="match-teams">
         <div class="match-team">
-          <span class="team-badge">${flagEmoji(match.homeFlag)}</span>
+          ${renderFlagBadge(match.homeFlag, match.homeTeam)}
           <span class="team-name">${match.homeTeam}</span>
         </div>
         <div class="match-versus">vs</div>
         <div class="match-team">
-          <span class="team-badge">${flagEmoji(match.awayFlag)}</span>
+          ${renderFlagBadge(match.awayFlag, match.awayTeam)}
           <span class="team-name">${match.awayTeam}</span>
         </div>
       </div>
