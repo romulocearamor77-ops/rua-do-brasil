@@ -68,6 +68,7 @@ const loginMessage = document.querySelector("#loginMessage");
 const logoutButton = document.querySelector("#logoutButton");
 const nextMatchCountdown = document.querySelector("#nextMatchCountdown");
 const copyPixButton = document.querySelector("#copyPixButton");
+const storyTimeline = document.querySelector("#storyTimeline");
 
 let gallery = [];
 let quotas = [];
@@ -1906,6 +1907,102 @@ function createMediaElement(item) {
   return media;
 }
 
+function createStoryPreview(item) {
+  if (!item) {
+    return "";
+  }
+
+  const url = mediaUrl(item);
+  const isVideo = mediaType(item).startsWith("video");
+
+  if (!url) {
+    return "";
+  }
+
+  if (!item.dataUrl && !isDirectMediaUrl(url) && !isYoutubeUrl(url)) {
+    return '<div class="timeline-preview timeline-preview-link">Memoria da galeria</div>';
+  }
+
+  if (isVideo || isYoutubeUrl(url)) {
+    return `
+      <div class="timeline-preview timeline-preview-video">
+        <span>▶</span>
+      </div>
+    `;
+  }
+
+  return `<img class="timeline-preview" src="${escapeHtml(url)}" alt="${escapeHtml(item.caption || "Memoria da rua")}">`;
+}
+
+function buildStoryTimelineEntries() {
+  const validItems = gallery
+    .filter((item) => Number.isFinite(Number(item.year)))
+    .slice()
+    .sort((left, right) => Number(left.year) - Number(right.year));
+
+  if (!validItems.length) {
+    return [
+      {
+        year: "Antes da estreia",
+        title: "A rua se organiza",
+        text: "O memorial vai aparecer aqui com as fotos, videos e lembrancas conforme a vizinhanca for alimentando a galeria."
+      },
+      {
+        year: "Mutirao",
+        title: "Cada ajuda vira memoria",
+        text: "Bandeirinhas, pintura, churrasco, palpites e cada colaboracao da rua passam a fazer parte desta linha do tempo."
+      },
+      {
+        year: "Dia de jogo",
+        title: "A rua vira torcida",
+        text: "Quando a galeria crescer, esta area vai mostrar os capitulos da historia da rua Joao Henrique da Silva nas Copas."
+      }
+    ];
+  }
+
+  const yearMap = new Map();
+  validItems.forEach((item) => {
+    const year = Number(item.year);
+    if (!yearMap.has(year)) {
+      yearMap.set(year, []);
+    }
+    yearMap.get(year).push(item);
+  });
+
+  return [...yearMap.entries()].map(([year, items]) => {
+    const highlight = items[items.length - 1];
+    const mediaCount = items.length;
+    const mediaLabel = mediaCount === 1 ? "registro" : "registros";
+
+    return {
+      year: String(year),
+      title: highlight.caption,
+      text: `${mediaCount} ${mediaLabel} guardados deste periodo. Destaque do memorial: ${highlight.caption}.`,
+      media: highlight
+    };
+  });
+}
+
+function renderStoryTimeline() {
+  if (!storyTimeline) {
+    return;
+  }
+
+  const entries = buildStoryTimelineEntries();
+  storyTimeline.innerHTML = entries
+    .map((entry) => `
+      <article class="timeline-item memorial-card">
+        <div class="timeline-copy">
+          <span class="timeline-year">${escapeHtml(entry.year)}</span>
+          <strong>${escapeHtml(entry.title)}</strong>
+          <p>${escapeHtml(entry.text)}</p>
+        </div>
+        ${entry.media ? createStoryPreview(entry.media) : ""}
+      </article>
+    `)
+    .join("");
+}
+
 function showMessage(message, isError = false) {
   connectionStatus.textContent = message;
   connectionStatus.classList.toggle("error", isError);
@@ -2384,6 +2481,7 @@ function renderPool() {
 
 function renderGallery() {
   renderYearFilter();
+  renderStoryTimeline();
   galleryGrid.innerHTML = "";
 
   const selectedYear = yearFilter.value;

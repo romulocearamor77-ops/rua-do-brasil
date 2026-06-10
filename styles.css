@@ -638,6 +638,63 @@ button {
   margin-bottom: 6px;
 }
 
+.memorial-timeline {
+  margin-top: 16px;
+}
+
+.memorial-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 138px;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 0 0 22px;
+}
+
+.timeline-copy p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.timeline-year {
+  display: inline-flex;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #eef5eb;
+  color: var(--deep-green);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.timeline-preview {
+  display: block;
+  width: 138px;
+  height: 108px;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 24px rgba(18, 38, 24, 0.12);
+}
+
+.timeline-preview-video,
+.timeline-preview-link {
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(135deg, rgba(23, 78, 166, 0.16), rgba(22, 129, 61, 0.12)),
+    #f6faf3;
+  color: var(--deep-green);
+  font-weight: 700;
+  font-size: 1.8rem;
+}
+
+.timeline-preview-link {
+  font-size: 0.82rem;
+  text-align: center;
+  padding: 10px;
+}
+
 main {
   display: grid;
   gap: 0;
@@ -1386,6 +1443,10 @@ footer {
   .podium-grid {
     grid-template-columns: 1fr;
   }
+
+  .memorial-card {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 540px) {
@@ -1453,6 +1514,11 @@ footer {
   .hero-emblem-card:last-child img {
     width: 96px;
     height: 96px;
+  }
+
+  .timeline-preview {
+    width: 100%;
+    height: 180px;
   }
 
   .hero-pix-copy {
