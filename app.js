@@ -1495,7 +1495,7 @@ const poolStageOrder = [
   "Final"
 ];
 
-const poolMatches = buildPoolMatches();
+const poolMatches = buildBrazilPoolMatches();
 
 officialResults = defaultResults();
 
@@ -1645,20 +1645,77 @@ function capitalizeLabel(value = "") {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-function buildPoolMatches() {
-  return localizedScheduleData().map((match) => ({
-    id: `pool-${match.matchNumber}`,
-    matchNumber: match.matchNumber,
-    round: `Jogo #${match.matchNumber}`,
-    stage: match.stage,
-    date: match.date,
-    displayDate: match.displayDate,
-    weekday: capitalizeLabel(match.weekday || ""),
-    time: match.displayTime,
-    venue: `${match.stadium} - ${match.city}`,
-    homeTeam: match.homeTeam,
-    awayTeam: match.awayTeam
-  }));
+function buildBrazilPoolMatches() {
+  const scheduleMatches = localizedScheduleData();
+  const byNumber = (matchNumber) => scheduleMatches.find((match) => match.matchNumber === matchNumber);
+  const createMatch = (matchNumber, overrides = {}) => {
+    const match = byNumber(matchNumber);
+    if (!match) {
+      return null;
+    }
+
+    return {
+      id: `pool-${match.matchNumber}`,
+      matchNumber: match.matchNumber,
+      round: overrides.round || `Jogo #${match.matchNumber}`,
+      stage: overrides.stage || match.stage,
+      date: match.date,
+      displayDate: match.displayDate,
+      weekday: capitalizeLabel(match.weekday || ""),
+      time: match.displayTime,
+      venue: `${match.stadium} - ${match.city}`,
+      homeTeam: overrides.homeTeam || match.homeTeam,
+      awayTeam: overrides.awayTeam || match.awayTeam
+    };
+  };
+
+  return [
+    createMatch(7, {
+      round: "1a rodada",
+      homeTeam: "Brasil",
+      awayTeam: "Marrocos"
+    }),
+    createMatch(29, {
+      round: "2a rodada",
+      homeTeam: "Brasil",
+      awayTeam: "Haiti"
+    }),
+    createMatch(49, {
+      round: "3a rodada",
+      homeTeam: "Escocia",
+      awayTeam: "Brasil"
+    }),
+    createMatch(86, {
+      round: "Primeiro mata-mata",
+      homeTeam: "Brasil",
+      awayTeam: "2o colocado do Grupo H"
+    }),
+    createMatch(95, {
+      round: "Oitavas de final",
+      homeTeam: "Brasil",
+      awayTeam: "Vencedor do Jogo 88"
+    }),
+    createMatch(100, {
+      round: "Quartas de final",
+      homeTeam: "Brasil",
+      awayTeam: "Vencedor do Jogo 96"
+    }),
+    createMatch(102, {
+      round: "Semifinal",
+      homeTeam: "Vencedor do Jogo 99",
+      awayTeam: "Brasil"
+    }),
+    createMatch(103, {
+      round: "Disputa de terceiro lugar",
+      homeTeam: "Perdedor da Semifinal 101",
+      awayTeam: "Brasil"
+    }),
+    createMatch(104, {
+      round: "Final",
+      homeTeam: "Vencedor da Semifinal 101",
+      awayTeam: "Brasil"
+    })
+  ].filter(Boolean);
 }
 
 function groupPoolMatchesByStage(matches) {
@@ -2445,7 +2502,7 @@ function renderPoolStats() {
   poolStats.innerHTML = `
     <div class="pool-mini-stat"><span>Palpites enviados</span><strong>${bets.length}</strong></div>
     <div class="pool-mini-stat"><span>Lider atual</span><strong>${ranking[0]?.name || "Aguardando"}</strong></div>
-    <div class="pool-mini-stat"><span>Jogos no bolao</span><strong>${poolMatches.length}</strong></div>
+    <div class="pool-mini-stat"><span>Jogos do Brasil no bolao</span><strong>${poolMatches.length}</strong></div>
   `;
 }
 
@@ -2476,7 +2533,7 @@ function renderRankingPodium(ranking) {
 function resetBetForm() {
   editingBetId = null;
   betForm.reset();
-  betFormMode.textContent = `Preencha seus palpites para todos os ${poolMatches.length} jogos da Copa e salve seu nome no ranking da rua.`;
+  betFormMode.textContent = `Preencha seus palpites dos ${poolMatches.length} jogos do Brasil, da fase de grupos ao mata-mata, e salve seu nome no ranking da rua.`;
   betSubmitButton.textContent = "Salvar meus palpites";
   cancelBetEdit.hidden = true;
 }
@@ -2498,7 +2555,7 @@ function startBetEdit(bet, shouldScroll = true) {
     }
   });
 
-  betFormMode.textContent = `Editando os palpites de ${bet.name} em todos os jogos da Copa.`;
+  betFormMode.textContent = `Editando os palpites de ${bet.name} nos jogos do Brasil, incluindo o mata-mata.`;
   betSubmitButton.textContent = "Salvar alteracoes do palpite";
   cancelBetEdit.hidden = false;
   if (shouldScroll) {
