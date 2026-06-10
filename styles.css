@@ -46,7 +46,7 @@ a {
 }
 
 .hero {
-  min-height: 88vh;
+  min-height: 74vh;
   display: grid;
   grid-template-rows: auto 1fr;
   color: white;
@@ -195,7 +195,7 @@ button {
 .hero-content {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 88px 0 48px;
+  padding: 44px 0 24px;
   padding-right: 300px;
   align-self: center;
   position: relative;
@@ -781,7 +781,7 @@ main {
 .section-shell {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 60px 0;
+  padding: 44px 0;
 }
 
 .quota-band {
@@ -791,12 +791,9 @@ main {
   background: #eef6f0;
 }
 
-.gallery-section {
-  min-height: 70vh;
-}
-
+.gallery-section,
 .expense-section {
-  min-height: 60vh;
+  min-height: 0;
 }
 
 .pool-section {
@@ -886,6 +883,43 @@ main {
 .results-list {
   display: grid;
   gap: 14px;
+}
+
+.admin-collapsible {
+  display: grid;
+  gap: 0;
+}
+
+.admin-collapsible summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 800;
+  color: var(--deep-green);
+}
+
+.admin-collapsible summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-collapsible summary::after {
+  content: "+";
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--blue);
+}
+
+.admin-collapsible[open] summary::after {
+  content: "−";
+}
+
+.admin-collapsible-body {
+  display: grid;
+  gap: 16px;
+  padding-top: 16px;
 }
 
 .pool-stage-group {
@@ -1162,7 +1196,7 @@ main {
 .finance-hero > div {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 56px 0;
+  padding: 38px 0 24px;
 }
 
 .finance-hero h2 {
@@ -1560,11 +1594,11 @@ footer {
   }
 
   .hero {
-    min-height: 82vh;
+    min-height: 0;
   }
 
   .hero-content {
-    padding: 54px 0 120px;
+    padding: 40px 0 88px;
     padding-right: 0;
   }
 
@@ -1581,7 +1615,7 @@ footer {
   }
 
   .hero-panels {
-    padding-bottom: 98px;
+    padding-bottom: 70px;
   }
 
   .summary-card {
@@ -1595,6 +1629,10 @@ footer {
 
   .memorial-card {
     grid-template-columns: 1fr;
+  }
+
+  .section-shell {
+    padding: 36px 0;
   }
 }
 

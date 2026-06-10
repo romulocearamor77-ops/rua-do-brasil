@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Rua do Brasil - Memorias da Copa</title>
-    <link rel="stylesheet" href="styles.css?v=14">
+    <link rel="stylesheet" href="styles.css?v=15">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
       window.RUA_BRASIL_CONFIG = {
@@ -204,30 +204,35 @@
           </div>
 
           <div class="pool-side">
-            <div class="panel official-results admin-only">
-              <h3>Resultados oficiais</h3>
-              <form class="results-form" id="resultsForm">
-                <div class="results-list" id="resultsList"></div>
-                <button type="submit">Atualizar resultados</button>
-              </form>
-            </div>
-
-            <div class="panel admin-only">
-              <h3>Editar palpites</h3>
-              <p class="section-note">Ajuste os placares enviados pelos participantes quando precisar corrigir alguma informacao.</p>
-              <div class="table-wrap ranking-table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Nome</th>
-                      <th>Palpites</th>
-                      <th>Acoes</th>
-                    </tr>
-                  </thead>
-                  <tbody id="betAdminRows"></tbody>
-                </table>
+            <details class="panel official-results admin-only admin-collapsible">
+              <summary>Resultados oficiais do bolao</summary>
+              <div class="admin-collapsible-body">
+                <p class="section-note">Preencha os placares oficiais para atualizar o ranking automaticamente.</p>
+                <form class="results-form" id="resultsForm">
+                  <div class="results-list" id="resultsList"></div>
+                  <button type="submit">Atualizar resultados</button>
+                </form>
               </div>
-            </div>
+            </details>
+
+            <details class="panel admin-only admin-collapsible">
+              <summary>Editar palpites enviados</summary>
+              <div class="admin-collapsible-body">
+                <p class="section-note">Ajuste os placares enviados pelos participantes quando precisar corrigir alguma informacao.</p>
+                <div class="table-wrap ranking-table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Nome</th>
+                        <th>Palpites</th>
+                        <th>Acoes</th>
+                      </tr>
+                    </thead>
+                    <tbody id="betAdminRows"></tbody>
+                  </table>
+                </div>
+              </div>
+            </details>
 
             <div class="panel ranking-panel">
               <div class="ranking-header">
@@ -262,33 +267,38 @@
           <p class="section-note" id="connectionStatus"></p>
         </div>
 
-        <form class="panel media-form admin-only" id="mediaForm">
-          <p class="form-note">
-            Videos enviados como arquivo precisam ter ate 30 segundos. Para arquivos grandes, configure Cloudinary/Supabase ou use o campo Link da midia.
-          </p>
+        <details class="panel media-admin-panel admin-only admin-collapsible">
+          <summary>Adicionar foto ou video</summary>
+          <div class="admin-collapsible-body">
+            <form class="media-form" id="mediaForm">
+              <p class="form-note">
+                Videos enviados como arquivo precisam ter ate 30 segundos. Para arquivos grandes, configure Cloudinary/Supabase ou use o campo Link da midia.
+              </p>
 
-          <label>
-            Foto ou video
-            <input id="mediaFile" type="file" accept="image/*,video/*">
-          </label>
+              <label>
+                Foto ou video
+                <input id="mediaFile" type="file" accept="image/*,video/*">
+              </label>
 
-          <label>
-            Link da midia
-            <input id="mediaLink" type="url" placeholder="https://.../video.mp4">
-          </label>
+              <label>
+                Link da midia
+                <input id="mediaLink" type="url" placeholder="https://.../video.mp4">
+              </label>
 
-          <label>
-            Ano
-            <input id="mediaYear" type="number" min="1930" max="2100" placeholder="2026" required>
-          </label>
+              <label>
+                Ano
+                <input id="mediaYear" type="number" min="1930" max="2100" placeholder="2026" required>
+              </label>
 
-          <label class="wide">
-            Legenda
-            <input id="mediaCaption" type="text" maxlength="120" placeholder="Ex.: Pintura da calcada feita no sabado" required>
-          </label>
+              <label class="wide">
+                Legenda
+                <input id="mediaCaption" type="text" maxlength="120" placeholder="Ex.: Pintura da calcada feita no sabado" required>
+              </label>
 
-          <button type="submit">Salvar na galeria</button>
-        </form>
+              <button type="submit">Salvar na galeria</button>
+            </form>
+          </div>
+        </details>
 
         <div class="toolbar">
           <label>
@@ -318,27 +328,32 @@
           <p class="section-note">Cadastre quem contribuiu e acompanhe os valores pendentes.</p>
         </div>
 
-        <form class="panel quota-form admin-only" id="quotaForm">
-          <label>
-            Nome do vizinho
-            <input id="quotaName" type="text" maxlength="80" placeholder="Nome" required>
-          </label>
+        <details class="panel admin-only admin-collapsible">
+          <summary>Adicionar ou atualizar contribuicao</summary>
+          <div class="admin-collapsible-body">
+            <form class="quota-form" id="quotaForm">
+              <label>
+                Nome do vizinho
+                <input id="quotaName" type="text" maxlength="80" placeholder="Nome" required>
+              </label>
 
-          <label>
-            Valor
-            <input id="quotaValue" type="number" min="0" step="0.01" placeholder="50,00" required>
-          </label>
+              <label>
+                Valor
+                <input id="quotaValue" type="number" min="0" step="0.01" placeholder="50,00" required>
+              </label>
 
-          <label>
-            Status
-            <select id="quotaPaid">
-              <option value="true">Pago</option>
-              <option value="false">Pendente</option>
-            </select>
-          </label>
+              <label>
+                Status
+                <select id="quotaPaid">
+                  <option value="true">Pago</option>
+                  <option value="false">Pendente</option>
+                </select>
+              </label>
 
-          <button type="submit">Adicionar cota</button>
-        </form>
+              <button type="submit">Adicionar cota</button>
+            </form>
+          </div>
+        </details>
 
         <div class="summary" id="quotaSummary"></div>
 
@@ -364,52 +379,57 @@
           <p class="section-note">Registre todas as despesas da rua com categoria, descricao e comprovante.</p>
         </div>
 
-        <form class="panel expense-form admin-only" id="expenseForm">
-          <p class="form-note wide" id="expenseFormMode">Use este formulario para adicionar um novo gasto da decoracao.</p>
+        <details class="panel admin-only admin-collapsible">
+          <summary>Adicionar ou editar despesa</summary>
+          <div class="admin-collapsible-body">
+            <form class="expense-form" id="expenseForm">
+              <p class="form-note wide" id="expenseFormMode">Use este formulario para adicionar um novo gasto da decoracao.</p>
 
-          <label>
-            Data
-            <input id="expenseDate" type="date" required>
-          </label>
+              <label>
+                Data
+                <input id="expenseDate" type="date" required>
+              </label>
 
-          <label>
-            Categoria
-            <select id="expenseCategory" required>
-              <option value="">Selecione</option>
-              <option value="Bandeirinhas">Bandeirinhas</option>
-              <option value="Barbante">Barbante</option>
-              <option value="Pincel">Pincel</option>
-              <option value="Bandeira">Bandeira</option>
-              <option value="Tintas">Tintas</option>
-              <option value="Iluminacao">Iluminacao</option>
-              <option value="Estrutura">Estrutura</option>
-              <option value="Alimentacao">Alimentacao</option>
-              <option value="Som">Som</option>
-              <option value="Limpeza">Limpeza</option>
-              <option value="Outros">Outros</option>
-            </select>
-          </label>
+              <label>
+                Categoria
+                <select id="expenseCategory" required>
+                  <option value="">Selecione</option>
+                  <option value="Bandeirinhas">Bandeirinhas</option>
+                  <option value="Barbante">Barbante</option>
+                  <option value="Pincel">Pincel</option>
+                  <option value="Bandeira">Bandeira</option>
+                  <option value="Tintas">Tintas</option>
+                  <option value="Iluminacao">Iluminacao</option>
+                  <option value="Estrutura">Estrutura</option>
+                  <option value="Alimentacao">Alimentacao</option>
+                  <option value="Som">Som</option>
+                  <option value="Limpeza">Limpeza</option>
+                  <option value="Outros">Outros</option>
+                </select>
+              </label>
 
-          <label>
-            Valor gasto
-            <input id="expenseValue" type="number" min="0" step="0.01" placeholder="0,00" required>
-          </label>
+              <label>
+                Valor gasto
+                <input id="expenseValue" type="number" min="0" step="0.01" placeholder="0,00" required>
+              </label>
 
-          <label class="wide">
-            Descricao
-            <input id="expenseDescription" type="text" maxlength="160" placeholder="Ex.: 3 latas de tinta verde e amarela" required>
-          </label>
+              <label class="wide">
+                Descricao
+                <input id="expenseDescription" type="text" maxlength="160" placeholder="Ex.: 3 latas de tinta verde e amarela" required>
+              </label>
 
-          <label class="wide">
-            Comprovante ou observacao
-            <input id="expenseReceipt" type="url" placeholder="https://... ou link da nota/foto">
-          </label>
+              <label class="wide">
+                Comprovante ou observacao
+                <input id="expenseReceipt" type="url" placeholder="https://... ou link da nota/foto">
+              </label>
 
-          <div class="form-actions">
-            <button id="expenseSubmitButton" type="submit">Adicionar despesa</button>
-            <button class="secondary-button" id="cancelExpenseEdit" type="button" hidden>Cancelar edicao</button>
+              <div class="form-actions">
+                <button id="expenseSubmitButton" type="submit">Adicionar despesa</button>
+                <button class="secondary-button" id="cancelExpenseEdit" type="button" hidden>Cancelar edicao</button>
+              </div>
+            </form>
           </div>
-        </form>
+        </details>
 
         <div class="summary" id="financeSummary"></div>
         <div class="finance-breakdown-grid">
@@ -514,6 +534,6 @@
       Feito para guardar a memoria da rua, organizar a torcida e prestar contas com transparencia.
     </footer>
 
-    <script src="app.js?v=22"></script>
+    <script src="app.js?v=23"></script>
   </body>
 </html>

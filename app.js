@@ -1804,6 +1804,46 @@ function createId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function resetInitialScroll() {
+  if (window.location.hash) {
+    return;
+  }
+
+  if ("scrollRestoration" in window.history) {
+    window.history.scrollRestoration = "manual";
+  }
+
+  window.requestAnimationFrame(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  });
+}
+
+function openAdminPanel(element) {
+  const panel = element?.closest(".admin-collapsible");
+  if (panel) {
+    panel.open = true;
+  }
+}
+
+function showLoadingStates() {
+  poolStats.innerHTML = `
+    <div class="pool-mini-stat"><span>Palpites enviados</span><strong>...</strong></div>
+    <div class="pool-mini-stat"><span>Lider atual</span><strong>Carregando</strong></div>
+    <div class="pool-mini-stat"><span>Jogos do Brasil no bolao</span><strong>${poolMatches.length}</strong></div>
+  `;
+  rankingPodium.innerHTML = '<div class="empty-state">Carregando classificacao do bolao...</div>';
+  rankingRows.innerHTML = '<tr><td colspan="4">Carregando ranking...</td></tr>';
+  betAdminRows.innerHTML = '<tr><td colspan="3">Carregando palpites...</td></tr>';
+  quotaSummary.innerHTML = '<div class="empty-state">Carregando resumo da arrecadacao...</div>';
+  quotaRows.innerHTML = '<tr><td colspan="4">Carregando cotas...</td></tr>';
+  financeSummary.innerHTML = '<div class="empty-state">Carregando resumo da prestacao...</div>';
+  expenseCategoryBars.innerHTML = '<div class="empty-state">Carregando categorias...</div>';
+  financeInsights.innerHTML = '<div class="empty-state">Carregando painel rapido...</div>';
+  expenseRows.innerHTML = '<tr><td colspan="6">Carregando despesas...</td></tr>';
+  galleryGrid.innerHTML = '<div class="empty-state">Carregando fotos e videos da rua...</div>';
+  storyTimeline.innerHTML = '<div class="empty-state">Carregando memorial da rua...</div>';
+}
+
 async function copyPixKey() {
   const pixKey = "85992576424";
 
@@ -2540,6 +2580,7 @@ function resetBetForm() {
 
 function startBetEdit(bet, shouldScroll = true) {
   editingBetId = bet.id;
+  openAdminPanel(betForm);
   bettorName.value = bet.name;
 
   poolMatches.forEach((match) => {
@@ -2955,6 +2996,7 @@ function resetExpenseForm() {
 
 function startExpenseEdit(item) {
   editingExpenseId = item.id;
+  openAdminPanel(expenseForm);
   expenseDate.value = getExpenseDate(item);
   expenseCategory.value = item.category || "";
   expenseValue.value = item.value ?? "";
@@ -3757,6 +3799,12 @@ copyPixButton.addEventListener("click", () => {
   copyPixKey();
 });
 
+window.addEventListener("pageshow", () => {
+  resetInitialScroll();
+});
+
+showLoadingStates();
+resetInitialScroll();
 applyAccessMode();
 resetBetForm();
 resetExpenseForm();
