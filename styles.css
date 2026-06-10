@@ -695,6 +695,10 @@ button {
   padding: 10px;
 }
 
+.timeline-preview-video {
+  background: #f6faf3;
+}
+
 main {
   display: grid;
   gap: 0;

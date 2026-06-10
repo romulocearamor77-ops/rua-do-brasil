@@ -1871,6 +1871,18 @@ function youtubeEmbedUrl(url = "") {
   }
 }
 
+function youtubeThumbnailUrl(url = "") {
+  try {
+    const parsed = new URL(url);
+    const id = parsed.hostname.includes("youtu.be")
+      ? parsed.pathname.replace("/", "")
+      : parsed.searchParams.get("v");
+    return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : "";
+  } catch {
+    return "";
+  }
+}
+
 function isDirectMediaUrl(url = "") {
   const cleanUrl = url.split("?")[0].toLowerCase();
   return /\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/.test(cleanUrl);
@@ -1929,6 +1941,36 @@ function createStoryPreview(item) {
         <span>▶</span>
       </div>
     `;
+  }
+
+  return `<img class="timeline-preview" src="${escapeHtml(url)}" alt="${escapeHtml(item.caption || "Memoria da rua")}">`;
+}
+
+function createStoryPreviewMarkup(item) {
+  if (!item) {
+    return "";
+  }
+
+  const url = mediaUrl(item);
+  const isVideo = mediaType(item).startsWith("video");
+
+  if (!url) {
+    return "";
+  }
+
+  if (!item.dataUrl && !isDirectMediaUrl(url) && !isYoutubeUrl(url)) {
+    return '<div class="timeline-preview timeline-preview-link">Memoria da galeria</div>';
+  }
+
+  if (isYoutubeUrl(url)) {
+    const thumbnail = youtubeThumbnailUrl(url);
+    return thumbnail
+      ? `<img class="timeline-preview" src="${escapeHtml(thumbnail)}" alt="${escapeHtml(item.caption || "Video da rua")}">`
+      : '<div class="timeline-preview timeline-preview-video"><span>▶</span></div>';
+  }
+
+  if (isVideo) {
+    return `<video class="timeline-preview timeline-preview-video" src="${escapeHtml(url)}" muted playsinline preload="metadata"></video>`;
   }
 
   return `<img class="timeline-preview" src="${escapeHtml(url)}" alt="${escapeHtml(item.caption || "Memoria da rua")}">`;
@@ -1997,7 +2039,7 @@ function renderStoryTimeline() {
           <strong>${escapeHtml(entry.title)}</strong>
           <p>${escapeHtml(entry.text)}</p>
         </div>
-        ${entry.media ? createStoryPreview(entry.media) : ""}
+        ${entry.media ? createStoryPreviewMarkup(entry.media) : ""}
       </article>
     `)
     .join("");
